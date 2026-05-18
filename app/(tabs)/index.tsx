@@ -6,7 +6,6 @@ import { AboutPreviewSection } from '@/components/finesse/about-preview-section'
 import { AppHeader } from '@/components/finesse/app-header';
 import { BestsellersSection } from '@/components/finesse/bestsellers-section';
 import { FeaturedCategoriesSection } from '@/components/finesse/featured-categories';
-import { FinesseFooter } from '@/components/finesse/finesse-footer';
 import { HomeHero } from '@/components/finesse/home-hero';
 import { FinesseColors } from '@/constants/finesse-theme';
 import { useTabScrollPadding } from '@/hooks/use-tab-scroll-padding';
@@ -25,7 +24,6 @@ export default function HomeScreen() {
         <FeaturedCategoriesSection />
         <BestsellersSection />
         <AboutPreviewSection />
-        <FinesseFooter />
       </ScrollView>
     </SafeAreaView>
   );

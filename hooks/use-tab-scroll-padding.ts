@@ -1,12 +1,11 @@
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
+import { FLOATING_TAB_SCROLL_BASE } from '@/components/finesse/floating-tab-bar';
 import { useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-/** Extra space above the tab bar so scroll content is not hidden (mobile). */
-export function useTabScrollPadding(extra = 16) {
-  const tabBarHeight = useBottomTabBarHeight();
+/** Extra space above the floating tab bar (same as shop screen). */
+export function useTabScrollPadding(extra = 0) {
   const insets = useSafeAreaInsets();
-  return tabBarHeight + Math.max(insets.bottom, 6) + extra;
+  return FLOATING_TAB_SCROLL_BASE + insets.bottom + extra;
 }
 
 export function useMobileContentWidth() {

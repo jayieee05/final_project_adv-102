@@ -3,7 +3,6 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AppHeader } from '@/components/finesse/app-header';
-import { FinesseFooter } from '@/components/finesse/finesse-footer';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useMobileContentWidth, useTabScrollPadding } from '@/hooks/use-tab-scroll-padding';
 
@@ -43,8 +42,6 @@ export default function AboutScreen() {
             pieces you will treasure.
           </Text>
         </View>
-
-        <FinesseFooter />
       </ScrollView>
     </SafeAreaView>
   );
