@@ -1,58 +1,31 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { FinesseColors } from '@/constants/finesse-theme';
+import { FloatingTabBar } from '@/components/finesse/floating-tab-bar';
 
 export default function TabLayout() {
   return (
     <Tabs
+      tabBar={(props) => <FloatingTabBar {...props} />}
       screenOptions={{
-        tabBarActiveTintColor: FinesseColors.primaryDark,
-        tabBarInactiveTintColor: FinesseColors.textLight,
         headerShown: false,
         tabBarHideOnKeyboard: true,
-        tabBarButton: HapticTab,
         tabBarStyle: {
-          backgroundColor: FinesseColors.background,
-          borderTopColor: FinesseColors.border,
-          paddingTop: 4,
-          minHeight: 52,
-        },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontFamily: 'Montserrat_500Medium',
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0,
+          height: 110,
         },
       }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="shop"
-        options={{
-          title: 'Shop',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="bag.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="about"
-        options={{
-          title: 'About',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="book.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="account"
-        options={{
-          title: 'Account',
-          tabBarIcon: ({ color }) => <IconSymbol size={26} name="person.fill" color={color} />,
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: 'Home' }} />
+      <Tabs.Screen name="shop" options={{ title: 'Shop' }} />
+      <Tabs.Screen name="about" options={{ title: 'About', href: null }} />
+      <Tabs.Screen name="account" options={{ title: 'Account' }} />
     </Tabs>
   );
 }

@@ -1,10 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useGlobalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   FlatList,
   Platform,
@@ -15,21 +14,14 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
-import type { CatalogProduct, ProductCategory } from '@/data/catalog';
-import { getAllProducts } from '@/data/catalog';
+import { FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useCart } from '@/contexts/cart-context';
-import { useMobileContentWidth } from '@/hooks/use-tab-scroll-padding';
-
-const TAB_BAR_RESTORE = {
-  backgroundColor: FinesseColors.background,
-  borderTopColor: FinesseColors.border,
-  paddingTop: 4,
-  minHeight: 52,
-} as const;
+import type { CatalogProduct, ProductCategory } from '@/data/catalog';
+import { getAllProducts } from '@/data/catalog';
+import { useMobileContentWidth, useTabScrollPadding } from '@/hooks/use-tab-scroll-padding';
 
 /** Balanced warm neutrals: light base, chocolate type, gold highlights */
 const T = {
@@ -98,21 +90,8 @@ const cardLift = Platform.select({
   default: {},
 });
 
-const floatShadow = Platform.select({
-  ios: {
-    shadowColor: '#1a1410',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-  },
-  android: { elevation: 10 },
-  default: {},
-});
-
 export default function ShopScreen() {
-  const navigation = useNavigation();
-  const insets = useSafeAreaInsets();
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const { addToCart, getTotalItems } = useCart();
   const params = useGlobalSearchParams<{ category?: string | string[] }>();
   const categoryParam = params.category;
@@ -125,19 +104,7 @@ export default function ShopScreen() {
   const [query, setQuery] = useState('');
   const { horizontalPad } = useMobileContentWidth();
   const cartCount = getTotalItems();
-
-  useFocusEffect(
-    useCallback(() => {
-      navigation.setOptions({
-        tabBarStyle: { display: 'none', height: 0 },
-      });
-      return () => {
-        navigation.setOptions({
-          tabBarStyle: { ...TAB_BAR_RESTORE },
-        });
-      };
-    }, [navigation]),
-  );
+  const scrollBottom = useTabScrollPadding();
 
   React.useEffect(() => {
     if (categoryStr && ['rings', 'necklaces', 'earrings', 'bracelets'].includes(categoryStr)) {
@@ -154,8 +121,6 @@ export default function ShopScreen() {
       return catOk && searchOk;
     });
   }, [selected, query]);
-
-  const floatPad = 88 + insets.bottom;
 
   const header = (
     <View style={{ paddingHorizontal: horizontalPad }}>
@@ -289,7 +254,7 @@ export default function ShopScreen() {
           ListHeaderComponent={header}
           renderItem={renderProduct}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.listPad, { paddingBottom: floatPad }]}
+          contentContainerStyle={[styles.listPad, { paddingBottom: scrollBottom }]}
           ItemSeparatorComponent={() => <View style={{ height: 14 }} />}
           ListEmptyComponent={
             <Text style={[styles.empty, { paddingHorizontal: horizontalPad }]}>
@@ -297,24 +262,6 @@ export default function ShopScreen() {
             </Text>
           }
         />
-
-        <View style={[styles.floatBar, { bottom: 14 + insets.bottom }, floatShadow]}>
-          <Pressable style={styles.floatHit} onPress={() => router.push('/')} accessibilityLabel="Home">
-            <Ionicons name="home-outline" size={24} color={T.inkSoft} />
-          </Pressable>
-          <View style={styles.floatCenter}>
-            <Ionicons name="bag-handle" size={24} color={T.ink} />
-            <View style={styles.floatGoldBar} />
-          </View>
-          <Pressable
-            style={styles.floatHit}
-            onPress={() =>
-              isAuthenticated() ? router.push('/(tabs)/account') : router.push('/login')
-            }
-            accessibilityLabel="Account">
-            <Ionicons name="person-outline" size={24} color={T.inkSoft} />
-          </Pressable>
-        </View>
       </SafeAreaView>
     </View>
   );
@@ -600,35 +547,5 @@ const styles = StyleSheet.create({
     fontFamily: FinesseFonts.sans,
     fontSize: 15,
     color: T.inkMuted,
-  },
-
-  floatBar: {
-    position: 'absolute',
-    alignSelf: 'center',
-    left: 40,
-    right: 40,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    backgroundColor: 'rgba(255,255,255,0.94)',
-    borderRadius: 999,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderWidth: 1,
-    borderColor: T.line,
-  },
-  floatHit: {
-    minWidth: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 6,
-  },
-  floatCenter: { alignItems: 'center' },
-  floatGoldBar: {
-    marginTop: 4,
-    width: 26,
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: T.gold,
   },
 });
