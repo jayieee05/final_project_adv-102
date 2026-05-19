@@ -1,7 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-import { API_URL } from '@/config/api';
+import { localLogin, localLogout, localSignup, localVerify } from '@/lib/local-auth';
+import { storageGetItem, storageRemoveItem, storageSetItem } from '@/lib/storage';
 
 export type User = {
   id?: string | number;
@@ -48,40 +48,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false;
     (async () => {
       try {
-        const savedUser = await AsyncStorage.getItem(KEY_USER);
+        const savedUser = await storageGetItem(KEY_USER);
         if (savedUser) {
           setUser(JSON.parse(savedUser) as User);
         }
-        const token = await AsyncStorage.getItem(KEY_TOKEN);
+        const token = await storageGetItem(KEY_TOKEN);
         if (!token) {
-          setIsLoading(false);
           return;
         }
-        const response = await fetch(`${API_URL}/auth/verify`, {
-          method: 'GET',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        const data = (await response.json()) as {
-          success?: boolean;
-          user?: User;
-        };
+        const data = await localVerify(token);
         if (cancelled) return;
-        if (data.success && data.user) {
+        if (data.success) {
           const u = { ...data.user, role: data.user.role ?? 'user' };
           setUser(u);
-          await AsyncStorage.setItem(KEY_USER, JSON.stringify(u));
+          await storageSetItem(KEY_USER, JSON.stringify(u));
         } else {
-          await AsyncStorage.removeItem(KEY_TOKEN);
-          await AsyncStorage.removeItem(KEY_USER);
+          await storageRemoveItem(KEY_TOKEN);
+          await storageRemoveItem(KEY_USER);
           setUser(null);
         }
       } catch {
         if (!cancelled) {
-          await AsyncStorage.removeItem(KEY_TOKEN);
-          await AsyncStorage.removeItem(KEY_USER);
+          await storageRemoveItem(KEY_TOKEN);
+          await storageRemoveItem(KEY_USER);
           setUser(null);
         }
       } finally {
@@ -95,26 +84,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (email: string, password: string) => {
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = (await response.json()) as {
-        success?: boolean;
-        user?: User;
-        token?: string;
-        error?: string;
-      };
-      if (data.success && data.user && data.token) {
-        await AsyncStorage.setItem(KEY_TOKEN, data.token);
-        await AsyncStorage.setItem(KEY_USER, JSON.stringify(data.user));
+      const data = await localLogin(email, password);
+      if (data.success) {
+        await storageSetItem(KEY_TOKEN, data.token);
+        await storageSetItem(KEY_USER, JSON.stringify(data.user));
         setUser(data.user);
         return { success: true as const };
       }
-      return { success: false as const, error: data.error ?? 'Login failed' };
+      return { success: false as const, error: data.error };
     } catch {
-      return { success: false as const, error: 'Network error. Please try again.' };
+      return { success: false as const, error: 'Something went wrong. Please try again.' };
     }
   }, []);
 
@@ -127,54 +106,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...(address?.trim() ? { address: address.trim() } : {}),
     };
     try {
-      const response = await fetch(`${API_URL}/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, ...profile }),
-      });
-      const data = (await response.json()) as {
-        success?: boolean;
-        user?: User;
-        token?: string;
-        error?: string;
-      };
-      if (data.success && data.user && data.token) {
-        const userWithProfile: User = { ...data.user, ...profile, ...data.user };
-        await AsyncStorage.setItem(KEY_TOKEN, data.token);
-        await AsyncStorage.setItem(KEY_USER, JSON.stringify(userWithProfile));
+      const data = await localSignup(name, email, password, profile);
+      if (data.success) {
+        const userWithProfile: User = { ...data.user, ...profile };
+        await storageSetItem(KEY_TOKEN, data.token);
+        await storageSetItem(KEY_USER, JSON.stringify(userWithProfile));
         setUser(userWithProfile);
         return { success: true as const };
       }
-      return { success: false as const, error: data.error ?? 'Signup failed' };
+      return { success: false as const, error: data.error };
     } catch {
-      return { success: false as const, error: 'Network error. Please try again.' };
+      return { success: false as const, error: 'Something went wrong. Please try again.' };
     }
   }, []);
 
   const logout = useCallback(async () => {
     try {
-      const token = await AsyncStorage.getItem(KEY_TOKEN);
+      const token = await storageGetItem(KEY_TOKEN);
       if (token) {
-        await fetch(`${API_URL}/auth/logout`, {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        await localLogout(token);
       }
     } catch {
       /* ignore */
     } finally {
-      await AsyncStorage.removeItem(KEY_TOKEN);
-      await AsyncStorage.removeItem(KEY_USER);
+      await storageRemoveItem(KEY_TOKEN);
+      await storageRemoveItem(KEY_USER);
       setUser(null);
     }
   }, []);
 
   const isAuthenticated = useCallback(() => user !== null, [user]);
   const isOwner = useCallback(() => user !== null && user.role === 'owner', [user]);
-  const getToken = useCallback(() => AsyncStorage.getItem(KEY_TOKEN), []);
+  const getToken = useCallback(() => storageGetItem(KEY_TOKEN), []);
 
   const value = useMemo(
     () => ({
