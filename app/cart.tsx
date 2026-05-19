@@ -13,15 +13,27 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
+import { useAuth } from '@/contexts/auth-context';
 import { cartLineImage, useCart } from '@/contexts/cart-context';
-
-function formatPeso(n: number) {
-  return `₱${n.toLocaleString('en-PH')}`;
-}
+import { formatPeso } from '@/lib/format-currency';
+import { calculateOrderTotals } from '@/lib/transactions';
 
 export default function CartScreen() {
+  const { isAuthenticated } = useAuth();
   const { cartItems, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart();
-  const total = getTotalPrice();
+  const subtotal = getTotalPrice();
+  const { shipping, total } = calculateOrderTotals(cartItems.length, subtotal);
+
+  const goCheckout = () => {
+    if (!isAuthenticated()) {
+      Alert.alert('Sign in required', 'Please log in to complete your purchase.', [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Log in', onPress: () => router.push('/login') },
+      ]);
+      return;
+    }
+    router.push('/checkout');
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -78,18 +90,19 @@ export default function CartScreen() {
           </ScrollView>
           <View style={styles.footer}>
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Estimated total</Text>
+              <Text style={styles.totalLabel}>Subtotal</Text>
+              <Text style={styles.totalVal}>{formatPeso(subtotal)}</Text>
+            </View>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Shipping</Text>
+              <Text style={styles.totalVal}>{formatPeso(shipping)}</Text>
+            </View>
+            <View style={[styles.totalRow, styles.grandTotal]}>
+              <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalVal}>{formatPeso(total)}</Text>
             </View>
-            <Pressable
-              style={styles.checkout}
-              onPress={() =>
-                Alert.alert(
-                  'Checkout',
-                  'Connect your Expo app to the same API as the web app to complete checkout.',
-                )
-              }>
-              <Text style={styles.checkoutTxt}>CHECKOUT</Text>
+            <Pressable style={styles.checkout} onPress={goCheckout}>
+              <Text style={styles.checkoutTxt}>PROCEED TO PAYMENT</Text>
             </Pressable>
             <Pressable
               onPress={() =>
@@ -180,7 +193,13 @@ const styles = StyleSheet.create({
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  grandTotal: {
     marginBottom: 14,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: FinesseColors.border,
   },
   totalLabel: { fontFamily: FinesseFonts.sans, fontSize: 16, color: FinesseColors.text },
   totalVal: {

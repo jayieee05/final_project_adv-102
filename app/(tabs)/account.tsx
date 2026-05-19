@@ -235,6 +235,12 @@ export default function AccountScreen() {
               subtitle="Rings, necklaces, earrings & more"
               onPress={() => router.push('/(tabs)/shop')}
             />
+            <QuickLink
+              icon="receipt-outline"
+              title="Orders & payments"
+              subtitle="View your transaction history"
+              onPress={() => router.push('/orders')}
+            />
             {isOwner() ? (
               <QuickLink
                 icon="grid-outline"

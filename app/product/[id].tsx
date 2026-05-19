@@ -14,12 +14,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { getProductById, productImage } from '@/data/catalog';
+import { useAuth } from '@/contexts/auth-context';
 import { useCart } from '@/contexts/cart-context';
 
 export default function ProductDetailScreen() {
   const raw = useLocalSearchParams<{ id: string | string[] }>();
   const idStr = Array.isArray(raw.id) ? raw.id[0] : raw.id;
   const product = useMemo(() => getProductById(Number(idStr)), [idStr]);
+  const { isAuthenticated } = useAuth();
   const { addToCart } = useCart();
   const [adding, setAdding] = useState(false);
 
@@ -41,10 +43,14 @@ export default function ProductDetailScreen() {
     setAdding(true);
     try {
       await addToCart(product);
-      Alert.alert('Added to cart', `${product.name} was added to your bag.`, [
+      const buttons: { text: string; style?: 'cancel' | 'default'; onPress?: () => void }[] = [
         { text: 'Keep shopping', style: 'cancel' },
         { text: 'View cart', onPress: () => router.push('/cart') },
-      ]);
+      ];
+      if (isAuthenticated()) {
+        buttons.push({ text: 'Checkout', onPress: () => router.push('/checkout') });
+      }
+      Alert.alert('Added to cart', `${product.name} was added to your bag.`, buttons);
     } finally {
       setAdding(false);
     }
