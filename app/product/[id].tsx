@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
-import { getProductById } from '@/data/catalog';
+import { getProductById, productImage } from '@/data/catalog';
 import { useCart } from '@/contexts/cart-context';
 
 export default function ProductDetailScreen() {
@@ -57,7 +57,7 @@ export default function ProductDetailScreen() {
         <Text style={styles.backTxt}>Back</Text>
       </Pressable>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Image source={{ uri: product.image }} style={styles.heroImg} contentFit="cover" />
+        <Image source={productImage(product)} style={styles.heroImg} contentFit="cover" />
         <View style={styles.body}>
           <Text style={styles.name}>{product.name}</Text>
           <Text style={styles.price}>{product.price}</Text>

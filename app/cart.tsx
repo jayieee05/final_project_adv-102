@@ -13,7 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
-import { useCart } from '@/contexts/cart-context';
+import { cartLineImage, useCart } from '@/contexts/cart-context';
 
 function formatPeso(n: number) {
   return `₱${n.toLocaleString('en-PH')}`;
@@ -44,7 +44,7 @@ export default function CartScreen() {
           <ScrollView contentContainerStyle={styles.list}>
             {cartItems.map((item) => (
               <View key={`${item.id}-${item.size}-${item.material}`} style={styles.row}>
-                <Image source={{ uri: item.image }} style={styles.thumb} contentFit="cover" />
+                <Image source={cartLineImage(item)} style={styles.thumb} contentFit="cover" />
                 <View style={styles.info}>
                   <Text style={styles.name} numberOfLines={2}>
                     {item.name}

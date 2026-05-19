@@ -12,6 +12,7 @@ import {
 
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { CATEGORIES } from '@/data/catalog';
+import { productImageSource } from '@/data/product-images';
 
 import { useMobileContentWidth } from '@/hooks/use-tab-scroll-padding';
 
@@ -89,7 +90,7 @@ export function FeaturedCategoriesSection() {
         ItemSeparatorComponent={() => <View style={{ width: CARD_GAP }} />}
         renderItem={({ item: c }) => (
           <View style={[styles.card, { width: cardWidth }]}>
-            <Image source={{ uri: c.image }} style={styles.cardImg} contentFit="cover" />
+            <Image source={productImageSource(c.imageKey)} style={styles.cardImg} contentFit="cover" />
             <Text style={[styles.cardName, isCompact && styles.cardNameCompact]}>{c.name}</Text>
             <Pressable
               onPress={() => router.push(`/(tabs)/shop?category=${c.slug}` as never)}

@@ -6,14 +6,14 @@ import { router, useGlobalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  FlatList,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    FlatList,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -21,7 +21,7 @@ import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useCart } from '@/contexts/cart-context';
 import type { CatalogProduct, ProductCategory } from '@/data/catalog';
-import { getAllProducts } from '@/data/catalog';
+import { getAllProducts, productImage } from '@/data/catalog';
 import { useMobileContentWidth } from '@/hooks/use-tab-scroll-padding';
 
 const TAB_BAR_RESTORE = {
@@ -243,7 +243,7 @@ export default function ShopScreen() {
       <View style={[styles.card, cardLift, { marginHorizontal: horizontalPad }]}>
         <Pressable onPress={() => router.push(`/product/${item.id}`)} style={styles.cardPress}>
           <View style={styles.imgShell}>
-            <Image source={{ uri: item.image }} style={styles.img} contentFit="cover" />
+            <Image source={productImage(item)} style={styles.img} contentFit="cover" />
           </View>
           <View style={styles.cardMain}>
             <View style={styles.badgeRow}>

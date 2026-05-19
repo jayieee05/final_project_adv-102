@@ -2,14 +2,19 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 
 import { API_URL } from '@/config/api';
 import { storageGetItem, storageRemoveItem, storageSetItem } from '@/lib/storage';
-import type { CatalogProduct } from '@/data/catalog';
+import type { ImageSource } from 'expo-image';
+
+import { getProductById, productImage, type CatalogProduct } from '@/data/catalog';
+import { PRODUCT_IMAGES, type ProductImageKey, productImageSource } from '@/data/product-images';
 
 import { useAuth } from './auth-context';
 
 export type CartLine = {
   id: number;
   name: string;
-  image: string;
+  imageKey?: ProductImageKey;
+  /** Legacy local storage or API URL */
+  image?: string;
   price: string;
   priceValue: number;
   quantity: number;
@@ -17,6 +22,16 @@ export type CartLine = {
   material: string;
   category: string;
 };
+
+export function cartLineImage(item: CartLine): ImageSource {
+  if (item.imageKey && item.imageKey in PRODUCT_IMAGES) {
+    return productImageSource(item.imageKey);
+  }
+  if (item.image?.startsWith('http')) {
+    return { uri: item.image };
+  }
+  return productImage(item.id);
+}
 
 type CartContextValue = {
   cartItems: CartLine[];
@@ -40,18 +55,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cartItems, setCartItems] = useState<CartLine[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const normalizeCartLines = useCallback((items: CartLine[]): CartLine[] => {
+    return items.map((item) => {
+      if (item.imageKey && item.imageKey in PRODUCT_IMAGES) return item;
+      const product = getProductById(item.id);
+      if (product) return { ...item, imageKey: product.imageKey };
+      return item;
+    });
+  }, []);
+
   const loadFromStorage = useCallback(async () => {
     const raw = await storageGetItem(KEY_CART);
     if (raw) {
       try {
-        setCartItems(JSON.parse(raw) as CartLine[]);
+        const parsed = JSON.parse(raw) as CartLine[];
+        setCartItems(normalizeCartLines(parsed));
       } catch {
         setCartItems([]);
       }
     } else {
       setCartItems([]);
     }
-  }, []);
+  }, [normalizeCartLines]);
 
   const saveLocal = useCallback(async (items: CartLine[]) => {
     await storageSetItem(KEY_CART, JSON.stringify(items));
@@ -186,7 +211,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             {
               id: product.id,
               name: product.name,
-              image: product.image,
+              imageKey: product.imageKey,
               price: product.price,
               priceValue: product.priceValue,
               quantity,
