@@ -2,7 +2,6 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 
 import { localLogin, localLogout, localSignup, localVerify } from '@/lib/local-auth';
 import { storageGetItem, storageRemoveItem, storageSetItem } from '@/lib/storage';
-import type { User } from '@/types/user';
 
 export type User = {
   id?: string | number;
@@ -24,7 +23,6 @@ export type SignupInput = {
   country?: string;
   address?: string;
 };
-export type { User };
 
 type AuthContextValue = {
   user: User | null;
@@ -108,27 +106,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...(address?.trim() ? { address: address.trim() } : {}),
     };
     try {
-      const response = await fetch(`${API_URL}/auth/signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, ...profile }),
-      });
-      const data = (await response.json()) as {
-        success?: boolean;
-        user?: User;
-        token?: string;
-        error?: string;
-      };
-      if (data.success && data.user && data.token) {
-        const userWithProfile: User = { ...data.user, ...profile, ...data.user };
-        await AsyncStorage.setItem(KEY_TOKEN, data.token);
-        await AsyncStorage.setItem(KEY_USER, JSON.stringify(userWithProfile));
-        setUser(userWithProfile);
       const data = await localSignup(name, email, password);
       if (data.success) {
+        const userWithProfile: User = { ...data.user, ...profile };
         await storageSetItem(KEY_TOKEN, data.token);
-        await storageSetItem(KEY_USER, JSON.stringify(data.user));
-        setUser(data.user);
+        await storageSetItem(KEY_USER, JSON.stringify(userWithProfile));
+        setUser(userWithProfile);
         return { success: true as const };
       }
       return { success: false as const, error: data.error };
