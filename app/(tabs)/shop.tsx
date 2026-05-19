@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useGlobalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   FlatList,
   Platform,
@@ -18,6 +19,9 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
+import { FinesseFonts } from '@/constants/finesse-theme';
+import { useAuth } from '@/contexts/auth-context';
+import { useCart } from '@/contexts/cart-context';
 import type { CatalogProduct, ProductCategory } from '@/data/catalog';
 import { getAllProducts } from '@/data/catalog';
 import { useAuth } from '@/contexts/auth-context';
@@ -113,6 +117,8 @@ export default function ShopScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { user, isAuthenticated } = useAuth();
+export default function ShopScreen() {
+  const { user } = useAuth();
   const { addToCart, getTotalItems } = useCart();
   const params = useGlobalSearchParams<{ category?: string | string[] }>();
   const categoryParam = params.category;
@@ -138,6 +144,7 @@ export default function ShopScreen() {
       };
     }, [navigation]),
   );
+  const scrollBottom = useTabScrollPadding();
 
   React.useEffect(() => {
     if (categoryStr && ['rings', 'necklaces', 'earrings', 'bracelets'].includes(categoryStr)) {
@@ -290,6 +297,7 @@ export default function ShopScreen() {
           renderItem={renderProduct}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.listPad, { paddingBottom: floatPad }]}
+          contentContainerStyle={[styles.listPad, { paddingBottom: scrollBottom }]}
           ItemSeparatorComponent={() => <View style={{ height: 14 }} />}
           ListEmptyComponent={
             <Text style={[styles.empty, { paddingHorizontal: horizontalPad }]}>
