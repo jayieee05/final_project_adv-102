@@ -8,13 +8,27 @@ export type User = {
   name: string;
   email: string;
   role?: string;
+  phone?: string;
+  city?: string;
+  country?: string;
+  address?: string;
+};
+
+export type SignupInput = {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  city: string;
+  country?: string;
+  address?: string;
 };
 
 type AuthContextValue = {
   user: User | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  signup: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signup: (input: SignupInput) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   isAuthenticated: () => boolean;
   isOwner: () => boolean;
@@ -104,12 +118,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const signup = useCallback(async (name: string, email: string, password: string) => {
+  const signup = useCallback(async (input: SignupInput) => {
+    const { name, email, password, phone, city, country, address } = input;
+    const profile = {
+      phone: phone.trim(),
+      city: city.trim(),
+      ...(country?.trim() ? { country: country.trim() } : {}),
+      ...(address?.trim() ? { address: address.trim() } : {}),
+    };
     try {
       const response = await fetch(`${API_URL}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ name, email, password, ...profile }),
       });
       const data = (await response.json()) as {
         success?: boolean;
@@ -118,9 +139,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         error?: string;
       };
       if (data.success && data.user && data.token) {
+        const userWithProfile: User = { ...data.user, ...profile, ...data.user };
         await AsyncStorage.setItem(KEY_TOKEN, data.token);
-        await AsyncStorage.setItem(KEY_USER, JSON.stringify(data.user));
-        setUser(data.user);
+        await AsyncStorage.setItem(KEY_USER, JSON.stringify(userWithProfile));
+        setUser(userWithProfile);
         return { success: true as const };
       }
       return { success: false as const, error: data.error ?? 'Signup failed' };

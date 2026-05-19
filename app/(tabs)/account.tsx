@@ -3,7 +3,6 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { AppHeader } from '@/components/finesse/app-header';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useCart } from '@/contexts/cart-context';
@@ -18,7 +17,6 @@ export default function AccountScreen() {
   if (!isAuthenticated()) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <AppHeader />
         <View style={[styles.center, { paddingHorizontal: horizontalPad, paddingBottom: scrollPad }]}>
           <Text style={styles.title}>Your account</Text>
           <Text style={styles.sub}>Sign in to save your cart and checkout faster.</Text>
@@ -35,10 +33,17 @@ export default function AccountScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <AppHeader />
       <View style={[styles.card, { marginHorizontal: horizontalPad, marginBottom: scrollPad }]}>
         <Text style={styles.welcome}>Hello, {user?.name?.split(' ')[0]}</Text>
         <Text style={styles.email}>{user?.email}</Text>
+        {user?.phone ? <Text style={styles.detail}>Phone: {user.phone}</Text> : null}
+        {user?.city ? (
+          <Text style={styles.detail}>
+            Location: {user.city}
+            {user.country ? `, ${user.country}` : ''}
+          </Text>
+        ) : null}
+        {user?.address ? <Text style={styles.detail}>Address: {user.address}</Text> : null}
         <Text style={styles.meta}>Items in cart: {getTotalItems()}</Text>
         {isOwner() && (
           <Pressable style={styles.secondary} onPress={() => router.push('/dashboard')}>
@@ -88,7 +93,14 @@ const styles = StyleSheet.create({
     fontFamily: FinesseFonts.sans,
     fontSize: 15,
     color: FinesseColors.textLight,
-    marginBottom: 16,
+    marginBottom: 8,
+  },
+  detail: {
+    fontFamily: FinesseFonts.sans,
+    fontSize: 14,
+    color: FinesseColors.text,
+    marginBottom: 6,
+    lineHeight: 20,
   },
   meta: {
     fontFamily: FinesseFonts.sansMedium,

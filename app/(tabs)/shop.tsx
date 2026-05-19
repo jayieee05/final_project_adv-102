@@ -5,7 +5,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useGlobalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useMemo, useState } from 'react';
-import React, { useMemo, useState } from 'react';
 import {
   FlatList,
   Platform,
@@ -19,13 +18,10 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
-import { FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useCart } from '@/contexts/cart-context';
 import type { CatalogProduct, ProductCategory } from '@/data/catalog';
 import { getAllProducts } from '@/data/catalog';
-import { useAuth } from '@/contexts/auth-context';
-import { useCart } from '@/contexts/cart-context';
 import { useMobileContentWidth } from '@/hooks/use-tab-scroll-padding';
 
 const TAB_BAR_RESTORE = {
@@ -49,7 +45,6 @@ const T = {
   gold: '#b8942f',
   goldSoft: 'rgba(184, 148, 47, 0.18)',
   chipBg: '#f3efe8',
-  badge: '#c45a5a',
 };
 
 const CATS: {
@@ -117,8 +112,6 @@ export default function ShopScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { user, isAuthenticated } = useAuth();
-export default function ShopScreen() {
-  const { user } = useAuth();
   const { addToCart, getTotalItems } = useCart();
   const params = useGlobalSearchParams<{ category?: string | string[] }>();
   const categoryParam = params.category;
@@ -144,7 +137,6 @@ export default function ShopScreen() {
       };
     }, [navigation]),
   );
-  const scrollBottom = useTabScrollPadding();
 
   React.useEffect(() => {
     if (categoryStr && ['rings', 'necklaces', 'earrings', 'bracelets'].includes(categoryStr)) {
@@ -169,10 +161,6 @@ export default function ShopScreen() {
       <View style={[styles.heroCard, softShadow]}>
         <View style={styles.accentRule} />
         <View style={styles.heroTop}>
-          <Pressable style={styles.iconSoft} hitSlop={8}>
-            <Ionicons name="notifications-outline" size={21} color={T.inkSoft} />
-            <View style={styles.notifDot} />
-          </Pressable>
           <View style={styles.heroTopRight}>
             <View style={styles.heroDecor}>
               <View style={[styles.dc, styles.dc1]} />
@@ -297,7 +285,6 @@ export default function ShopScreen() {
           renderItem={renderProduct}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.listPad, { paddingBottom: floatPad }]}
-          contentContainerStyle={[styles.listPad, { paddingBottom: scrollBottom }]}
           ItemSeparatorComponent={() => <View style={{ height: 14 }} />}
           ListEmptyComponent={
             <Text style={[styles.empty, { paddingHorizontal: horizontalPad }]}>
@@ -357,7 +344,7 @@ const styles = StyleSheet.create({
   },
   heroTop: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     marginBottom: 16,
     paddingLeft: 8,
@@ -370,17 +357,6 @@ const styles = StyleSheet.create({
     backgroundColor: T.chipBg,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  notifDot: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: T.badge,
-    borderWidth: 1.5,
-    borderColor: T.surface,
   },
   cartDot: {
     position: 'absolute',
