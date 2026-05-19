@@ -1,13 +1,11 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
-
-const ABOUT_IMAGE =
-  'https://images.unsplash.com/photo-1617038260897-41a1f644bcf9?w=900&q=85';
+import { HERO_LIFESTYLE_BG } from '@/data/product-images';
 
 export function HomeHero() {
   const { width, height } = useWindowDimensions();
@@ -24,11 +22,22 @@ export function HomeHero() {
 
   return (
     <View style={[styles.wrap, { minHeight: layout.minH }]}>
-      <Image source={{ uri: ABOUT_IMAGE }} style={StyleSheet.absoluteFill} contentFit="cover" />
+      <Image
+        source={HERO_LIFESTYLE_BG}
+        style={StyleSheet.absoluteFill}
+        contentFit="cover"
+        contentPosition="right center"
+      />
       <LinearGradient
-        colors={['rgba(0,0,0,0.65)', 'rgba(0,0,0,0.45)', 'rgba(0,0,0,0.55)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        colors={['rgba(32,28,24,0.88)', 'rgba(32,28,24,0.45)', 'rgba(32,28,24,0.15)']}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <LinearGradient
+        colors={['rgba(20,18,16,0.5)', 'rgba(20,18,16,0.15)', 'rgba(20,18,16,0.45)']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
       <View style={[styles.inner, { paddingHorizontal: compact ? 18 : 24 }]}>

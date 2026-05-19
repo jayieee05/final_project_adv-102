@@ -4,11 +4,9 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
+import { CRAFT_JEWELRY_IMAGE } from '@/data/product-images';
 
 import { useMobileContentWidth } from '@/hooks/use-tab-scroll-padding';
-
-const CRAFT_IMAGE =
-  'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=900&q=85';
 
 export function AboutPreviewSection() {
   const { horizontalPad, isCompact } = useMobileContentWidth();
@@ -16,7 +14,7 @@ export function AboutPreviewSection() {
 
   return (
     <View style={[styles.section, { paddingHorizontal: horizontalPad, paddingVertical: isCompact ? 32 : 40 }]}>
-      <Image source={{ uri: CRAFT_IMAGE }} style={styles.image} contentFit="cover" />
+      <Image source={CRAFT_JEWELRY_IMAGE} style={styles.image} contentFit="cover" />
       <View style={styles.content}>
         <Text style={styles.kicker}>Discover Our</Text>
         <Text style={[styles.title, { fontSize: titleSize }]}>Our Craftsmanship</Text>

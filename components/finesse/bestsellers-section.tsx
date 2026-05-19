@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
-import { getBestsellers } from '@/data/catalog';
+import { getBestsellers, productImage } from '@/data/catalog';
 
 import { useMobileContentWidth } from '@/hooks/use-tab-scroll-padding';
 
@@ -43,7 +43,7 @@ export function BestsellersSection() {
         ItemSeparatorComponent={() => <View style={{ width: CARD_GAP }} />}
         renderItem={({ item: p }) => (
           <View style={[styles.card, { width: cardWidth }]}>
-            <Image source={{ uri: p.image }} style={styles.img} contentFit="cover" />
+            <Image source={productImage(p)} style={styles.img} contentFit="cover" />
             <Text style={[styles.name, isCompact && styles.nameCompact]} numberOfLines={2}>
               {p.name}
             </Text>
