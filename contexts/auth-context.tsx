@@ -106,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ...(address?.trim() ? { address: address.trim() } : {}),
     };
     try {
-      const data = await localSignup(name, email, password);
+      const data = await localSignup(name, email, password, profile);
       if (data.success) {
         const userWithProfile: User = { ...data.user, ...profile };
         await storageSetItem(KEY_TOKEN, data.token);

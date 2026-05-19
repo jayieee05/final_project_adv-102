@@ -29,6 +29,10 @@ function toPublicUser(user: StoredUser): User {
     name: user.name,
     email: user.email,
     role: user.role ?? 'user',
+    phone: user.phone,
+    city: user.city,
+    country: user.country,
+    address: user.address,
   };
 }
 
@@ -87,6 +91,7 @@ export async function localSignup(
   name: string,
   email: string,
   password: string,
+  profile: Pick<User, 'phone' | 'city' | 'country' | 'address'> = {},
 ): Promise<{ success: true; user: User; token: string } | { success: false; error: string }> {
   await ensureSeedUsers();
   const normalizedEmail = email.toLowerCase().trim();
@@ -103,6 +108,7 @@ export async function localSignup(
     email: normalizedEmail,
     role: 'user',
     passwordHash: hashPassword(password, normalizedEmail),
+    ...profile,
   };
 
   users.push(newUser);
