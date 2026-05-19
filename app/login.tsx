@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
+import { validateLoginInput } from '@/lib/auth-validation';
 
 export default function LoginScreen() {
   const { login, user } = useAuth();
@@ -31,13 +32,9 @@ export default function LoginScreen() {
 
   const submit = async () => {
     setError('');
-    if (!email.trim() || !password) {
-      setError('Please fill in all fields');
-      return;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address');
+    const validationError = validateLoginInput(email, password);
+    if (validationError) {
+      setError(validationError);
       return;
     }
     setLoading(true);

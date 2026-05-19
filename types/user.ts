@@ -8,3 +8,13 @@ export type User = {
   country?: string;
   address?: string;
 };
+
+export type SignupInput = {
+  name: string;
+  email: string;
+  password: string;
+  phone: string;
+  city: string;
+  country?: string;
+  address?: string;
+};

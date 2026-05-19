@@ -15,10 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
-
-function digitsOnly(phone: string) {
-  return phone.replace(/\D/g, '');
-}
+import { MIN_PASSWORD_LENGTH, validateSignupInput } from '@/lib/auth-validation';
 
 export default function SignupScreen() {
   const { signup, user } = useAuth();
@@ -40,17 +37,17 @@ export default function SignupScreen() {
 
   const submit = async () => {
     setError('');
-    if (!name.trim() || !email.trim() || !password || !phone.trim() || !city.trim()) {
-      setError('Please fill in all required fields');
-      return;
-    }
-    const phoneDigits = digitsOnly(phone);
-    if (phoneDigits.length < 10) {
-      setError('Enter a valid phone number (at least 10 digits)');
-      return;
-    }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+    const validationError = validateSignupInput({
+      name,
+      email,
+      password,
+      phone,
+      city,
+      country,
+      address,
+    });
+    if (validationError) {
+      setError(validationError);
       return;
     }
     setLoading(true);
@@ -123,7 +120,7 @@ export default function SignupScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
-              placeholder="At least 6 characters"
+              placeholder={`At least ${MIN_PASSWORD_LENGTH} characters`}
               placeholderTextColor={FinesseColors.textLight}
               autoComplete="new-password"
             />

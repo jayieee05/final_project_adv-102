@@ -1,28 +1,18 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-import { localLogin, localLogout, localSignup, localVerify } from '@/lib/local-auth';
-import { storageGetItem, storageRemoveItem, storageSetItem } from '@/lib/storage';
+import { validateLoginInput, validateSignupInput } from '@/lib/auth-validation';
+import {
+  fetchUserProfile,
+  firebaseLogin,
+  firebaseLogout,
+  firebaseSignup,
+  firebaseUserToAppUser,
+  getFirebaseIdToken,
+} from '@/lib/firebase-auth';
+import { auth, onAuthStateChanged } from '@/lib/firebase';
+import type { SignupInput, User } from '@/types/user';
 
-export type User = {
-  id?: string | number;
-  name: string;
-  email: string;
-  role?: string;
-  phone?: string;
-  city?: string;
-  country?: string;
-  address?: string;
-};
-
-export type SignupInput = {
-  name: string;
-  email: string;
-  password: string;
-  phone: string;
-  city: string;
-  country?: string;
-  address?: string;
-};
+export type { SignupInput, User };
 
 type AuthContextValue = {
   user: User | null;
@@ -37,107 +27,68 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const KEY_TOKEN = 'finesse_token';
-const KEY_USER = 'finesse_user';
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const savedUser = await storageGetItem(KEY_USER);
-        if (savedUser) {
-          setUser(JSON.parse(savedUser) as User);
-        }
-        const token = await storageGetItem(KEY_TOKEN);
-        if (!token) {
-          return;
-        }
-        const data = await localVerify(token);
-        if (cancelled) return;
-        if (data.success) {
-          const u = { ...data.user, role: data.user.role ?? 'user' };
-          setUser(u);
-          await storageSetItem(KEY_USER, JSON.stringify(u));
-        } else {
-          await storageRemoveItem(KEY_TOKEN);
-          await storageRemoveItem(KEY_USER);
-          setUser(null);
-        }
-      } catch {
-        if (!cancelled) {
-          await storageRemoveItem(KEY_TOKEN);
-          await storageRemoveItem(KEY_USER);
-          setUser(null);
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        setUser(null);
+        setIsLoading(false);
+        return;
       }
-    })();
-    return () => {
-      cancelled = true;
-    };
+      try {
+        const profile = await fetchUserProfile(firebaseUser.uid);
+        setUser(firebaseUserToAppUser(firebaseUser, profile));
+      } catch {
+        setUser(firebaseUserToAppUser(firebaseUser, null));
+      } finally {
+        setIsLoading(false);
+      }
+    });
+    return unsubscribe;
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
-    try {
-      const data = await localLogin(email, password);
-      if (data.success) {
-        await storageSetItem(KEY_TOKEN, data.token);
-        await storageSetItem(KEY_USER, JSON.stringify(data.user));
-        setUser(data.user);
-        return { success: true as const };
-      }
-      return { success: false as const, error: data.error };
-    } catch {
-      return { success: false as const, error: 'Something went wrong. Please try again.' };
+    const validationError = validateLoginInput(email, password);
+    if (validationError) {
+      return { success: false as const, error: validationError };
     }
+    const result = await firebaseLogin(email, password);
+    if (result.success) {
+      setUser(result.user);
+      return { success: true as const };
+    }
+    return { success: false as const, error: result.error };
   }, []);
 
   const signup = useCallback(async (input: SignupInput) => {
-    const { name, email, password, phone, city, country, address } = input;
-    const profile = {
-      phone: phone.trim(),
-      city: city.trim(),
-      ...(country?.trim() ? { country: country.trim() } : {}),
-      ...(address?.trim() ? { address: address.trim() } : {}),
-    };
-    try {
-      const data = await localSignup(name, email, password, profile);
-      if (data.success) {
-        const userWithProfile: User = { ...data.user, ...profile };
-        await storageSetItem(KEY_TOKEN, data.token);
-        await storageSetItem(KEY_USER, JSON.stringify(userWithProfile));
-        setUser(userWithProfile);
-        return { success: true as const };
-      }
-      return { success: false as const, error: data.error };
-    } catch {
-      return { success: false as const, error: 'Something went wrong. Please try again.' };
+    const validationError = validateSignupInput(input);
+    if (validationError) {
+      return { success: false as const, error: validationError };
     }
+    const result = await firebaseSignup(input);
+    if (result.success) {
+      setUser(result.user);
+      return { success: true as const };
+    }
+    return { success: false as const, error: result.error };
   }, []);
 
   const logout = useCallback(async () => {
     try {
-      const token = await storageGetItem(KEY_TOKEN);
-      if (token) {
-        await localLogout(token);
-      }
+      await firebaseLogout();
     } catch {
       /* ignore */
     } finally {
-      await storageRemoveItem(KEY_TOKEN);
-      await storageRemoveItem(KEY_USER);
       setUser(null);
     }
   }, []);
 
   const isAuthenticated = useCallback(() => user !== null, [user]);
   const isOwner = useCallback(() => user !== null && user.role === 'owner', [user]);
-  const getToken = useCallback(() => storageGetItem(KEY_TOKEN), []);
+  const getToken = useCallback(() => getFirebaseIdToken(), []);
 
   const value = useMemo(
     () => ({
