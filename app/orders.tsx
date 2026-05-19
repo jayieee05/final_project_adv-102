@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { formatPeso } from '@/lib/format-currency';
+import { orderStatusColor, orderStatusLabel } from '@/lib/order-status';
 import { fetchUserTransactions, paymentMethodLabel } from '@/lib/transactions';
 import type { Transaction } from '@/types/transaction';
 
@@ -112,13 +113,28 @@ export default function OrdersScreen() {
                 }>
                 <View style={styles.cardTop}>
                   <Text style={styles.orderId}>#{tx.id.slice(0, 8).toUpperCase()}</Text>
-                  <View
-                    style={[
-                      styles.badge,
-                      tx.paymentStatus === 'paid' && styles.badgePaid,
-                      tx.paymentStatus === 'pending' && styles.badgePending,
-                    ]}>
-                    <Text style={styles.badgeTxt}>{statusLabel(tx)}</Text>
+                  <View style={styles.badgeRow}>
+                    <View
+                      style={[
+                        styles.badge,
+                        tx.paymentStatus === 'paid' && styles.badgePaid,
+                        tx.paymentStatus === 'pending' && styles.badgePending,
+                      ]}>
+                      <Text style={styles.badgeTxt}>{statusLabel(tx)}</Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.badge,
+                        { backgroundColor: `${orderStatusColor(tx.orderStatus ?? 'pending')}22` },
+                      ]}>
+                      <Text
+                        style={[
+                          styles.badgeTxt,
+                          { color: orderStatusColor(tx.orderStatus ?? 'pending') },
+                        ]}>
+                        {orderStatusLabel(tx.orderStatus ?? 'pending')}
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 <Text style={styles.date}>{formatDate(tx.createdAt)}</Text>
@@ -207,9 +223,11 @@ const styles = StyleSheet.create({
   cardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 4,
+    gap: 8,
   },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, justifyContent: 'flex-end', flex: 1 },
   orderId: {
     fontFamily: FinesseFonts.sansMedium,
     fontSize: 13,

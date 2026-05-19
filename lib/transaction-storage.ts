@@ -42,3 +42,18 @@ export async function listTransactionsLocal(userId: string): Promise<Transaction
     return [];
   }
 }
+
+export async function deleteTransactionLocal(
+  userId: string,
+  transactionId: string,
+): Promise<void> {
+  const raw = await storageGetItem(keyForUser(userId));
+  if (!raw) return;
+  try {
+    const list = JSON.parse(raw) as Transaction[];
+    const next = list.filter((t) => t.id !== transactionId);
+    await storageSetItem(keyForUser(userId), JSON.stringify(next));
+  } catch {
+    /* ignore */
+  }
+}

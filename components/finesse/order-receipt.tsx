@@ -10,6 +10,7 @@ import {
   receiptNumberFromId,
   receiptStatusLabel,
 } from '@/lib/receipt-format';
+import { orderStatusLabel } from '@/lib/order-status';
 import { paymentMethodLabel } from '@/lib/transactions';
 import type { Transaction } from '@/types/transaction';
 
@@ -147,6 +148,9 @@ export function OrderReceipt({ transaction, showCelebration }: OrderReceiptProps
               {receiptStatusLabel(transaction)}
             </Text>
           </View>
+          <Text style={styles.fulfillmentStatus}>
+            Order · {orderStatusLabel(transaction.orderStatus ?? 'pending')}
+          </Text>
 
           <DashedRule />
 
@@ -342,6 +346,16 @@ const styles = StyleSheet.create({
     color: INK_SOFT,
   },
   statusTxtPaid: { color: GOLD_DEEP },
+  fulfillmentStatus: {
+    fontFamily: FinesseFonts.sansMedium,
+    fontSize: 11,
+    letterSpacing: 1,
+    color: INK_SOFT,
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
   sectionHead: {
     fontFamily: FinesseFonts.sansMedium,
     fontSize: 9,

@@ -17,7 +17,7 @@ import { OrderReceipt } from '@/components/finesse/order-receipt';
 import { FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { formatPeso } from '@/lib/format-currency';
-import { takePendingReceipt } from '@/lib/pending-receipt';
+import { peekPendingReceipt, takePendingReceipt } from '@/lib/pending-receipt';
 import { receiptNumberFromId } from '@/lib/receipt-format';
 import { fetchTransactionById } from '@/lib/transactions';
 import type { Transaction } from '@/types/transaction';
@@ -27,7 +27,7 @@ export default function ReceiptScreen() {
   const id = Array.isArray(rawId) ? rawId[0] : rawId;
   const isNewPurchase = (Array.isArray(rawNew) ? rawNew[0] : rawNew) === '1';
 
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, isOwner } = useAuth();
   const [transaction, setTransaction] = useState<Transaction | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -35,21 +35,23 @@ export default function ReceiptScreen() {
   const load = useCallback(async () => {
     if (!id || !user?.id) return;
 
-    const pending = takePendingReceipt(id);
-    if (pending) {
-      setTransaction(pending);
+    const cached = takePendingReceipt(id) ?? peekPendingReceipt(id);
+    if (cached) {
+      setTransaction(cached);
       setError('');
       return;
     }
 
+    const customerId = isOwner() ? undefined : String(user.id);
+
     try {
-      const tx = await fetchTransactionById(id, String(user.id));
+      const tx = await fetchTransactionById(id, customerId);
       if (!tx) {
         setError('Receipt not found.');
         setTransaction(null);
         return;
       }
-      if (String(user.id) !== tx.userId) {
+      if (!isOwner() && String(user.id) !== tx.userId) {
         setError('You do not have access to this receipt.');
         setTransaction(null);
         return;
@@ -59,7 +61,7 @@ export default function ReceiptScreen() {
     } catch {
       setError('Could not load receipt.');
     }
-  }, [id, user?.id]);
+  }, [id, user?.id, isOwner]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -91,17 +93,29 @@ export default function ReceiptScreen() {
     }
   };
 
+  const goBack = () => {
+    if (isNewPurchase) {
+      router.replace('/(tabs)/shop');
+    } else if (isOwner()) {
+      router.replace('/dashboard');
+    } else {
+      router.back();
+    }
+  };
+
   return (
     <View style={styles.root}>
       <LinearGradient colors={['#2a2118', '#4a3c2d', '#3d3228']} style={StyleSheet.absoluteFill} />
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <View style={styles.header}>
-          <Pressable
-            onPress={() => (isNewPurchase ? router.replace('/(tabs)/shop') : router.back())}
-            hitSlop={12}>
-            <Ionicons name={isNewPurchase ? 'home-outline' : 'chevron-back'} size={26} color="#f9f6f2" />
+          <Pressable onPress={goBack} hitSlop={12}>
+            <Ionicons
+              name={isNewPurchase ? 'home-outline' : 'chevron-back'}
+              size={26}
+              color="#f9f6f2"
+            />
           </Pressable>
-          <Text style={styles.headerTitle}>Your receipt</Text>
+          <Text style={styles.headerTitle}>{isOwner() ? 'Order receipt' : 'Your receipt'}</Text>
           {transaction ? (
             <Pressable onPress={() => void shareReceipt()} hitSlop={12}>
               <Ionicons name="share-outline" size={24} color="#f9f6f2" />
@@ -128,9 +142,15 @@ export default function ReceiptScreen() {
               <OrderReceipt transaction={transaction} showCelebration={isNewPurchase} />
             </ScrollView>
             <View style={styles.actions}>
-              <Pressable style={styles.primaryBtn} onPress={() => router.replace('/orders')}>
-                <Text style={styles.primaryBtnTxt}>ALL ORDERS</Text>
-              </Pressable>
+              {isOwner() ? (
+                <Pressable style={styles.primaryBtn} onPress={() => router.replace('/dashboard')}>
+                  <Text style={styles.primaryBtnTxt}>BACK TO DASHBOARD</Text>
+                </Pressable>
+              ) : (
+                <Pressable style={styles.primaryBtn} onPress={() => router.replace('/orders')}>
+                  <Text style={styles.primaryBtnTxt}>ALL ORDERS</Text>
+                </Pressable>
+              )}
               <Pressable
                 style={styles.secondaryBtn}
                 onPress={() => router.replace('/(tabs)/shop')}>

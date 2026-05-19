@@ -1,9 +1,21 @@
-import { addDoc, collection, doc, getDoc, getDocs, query, serverTimestamp, where } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
 
 import type { CartLine } from '@/contexts/cart-context';
 import { db } from '@/lib/firebase';
 import { maskCardLast4 } from '@/lib/payment-validation';
 import {
+  deleteTransactionLocal,
   getTransactionLocal,
   listTransactionsLocal,
   saveTransactionLocal,
@@ -11,6 +23,7 @@ import {
 import type { User } from '@/types/user';
 import type {
   CardPaymentInput,
+  OrderStatus,
   PaymentMethod,
   Transaction,
   TransactionStatus,
@@ -60,6 +73,7 @@ export async function createTransaction(
     total,
     paymentMethod,
     paymentStatus,
+    orderStatus: 'pending',
     ...(paymentMethod === 'card' && card ? { cardLast4: maskCardLast4(card.cardNumber) } : {}),
     shippingPhone: user.phone,
     shippingCity: user.city,
@@ -78,6 +92,7 @@ export async function createTransaction(
       total: baseTransaction.total,
       paymentMethod: baseTransaction.paymentMethod,
       paymentStatus: baseTransaction.paymentStatus,
+      orderStatus: baseTransaction.orderStatus,
       ...(baseTransaction.cardLast4 ? { cardLast4: baseTransaction.cardLast4 } : {}),
       shippingPhone: baseTransaction.shippingPhone ?? null,
       shippingCity: baseTransaction.shippingCity ?? null,
@@ -116,6 +131,7 @@ function mapTransactionDoc(
     total: data.total as number,
     paymentMethod: data.paymentMethod as Transaction['paymentMethod'],
     paymentStatus: data.paymentStatus as Transaction['paymentStatus'],
+    orderStatus: (data.orderStatus as OrderStatus) ?? 'pending',
     cardLast4: data.cardLast4 as string | undefined,
     shippingPhone: data.shippingPhone as string | undefined,
     shippingCity: data.shippingCity as string | undefined,
@@ -128,20 +144,18 @@ export async function fetchTransactionById(
   id: string,
   userId?: string,
 ): Promise<Transaction | null> {
+  if (!id.startsWith('local_')) {
+    try {
+      const snap = await getDoc(doc(db, TRANSACTIONS_COLLECTION, id));
+      if (snap.exists()) return mapTransactionDoc(snap);
+    } catch {
+      /* fall through to local */
+    }
+  }
   if (userId) {
-    const local = await getTransactionLocal(userId, id);
-    if (local) return local;
+    return getTransactionLocal(userId, id);
   }
-  if (id.startsWith('local_')) {
-    return userId ? getTransactionLocal(userId, id) : null;
-  }
-  try {
-    const snap = await getDoc(doc(db, TRANSACTIONS_COLLECTION, id));
-    if (snap.exists()) return mapTransactionDoc(snap);
-  } catch {
-    /* fall through */
-  }
-  return userId ? getTransactionLocal(userId, id) : null;
+  return null;
 }
 
 export async function fetchUserTransactions(userId: string): Promise<Transaction[]> {
@@ -161,6 +175,69 @@ export async function fetchUserTransactions(userId: string): Promise<Transaction
   }
 
   return [...merged.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export async function fetchAllTransactions(): Promise<Transaction[]> {
+  try {
+    const snapshot = await getDocs(collection(db, TRANSACTIONS_COLLECTION));
+    const rows = snapshot.docs.map((docSnap) => mapTransactionDoc(docSnap));
+    return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  } catch {
+    return [];
+  }
+}
+
+export async function updateOrderStatus(
+  transactionId: string,
+  orderStatus: OrderStatus,
+  userId: string,
+): Promise<{ success: true } | { success: false; error: string }> {
+  if (transactionId.startsWith('local_')) {
+    const existing = await getTransactionLocal(userId, transactionId);
+    if (!existing) {
+      return { success: false, error: 'This order is only stored on the customer device.' };
+    }
+    await saveTransactionLocal({ ...existing, orderStatus });
+    return { success: true };
+  }
+
+  try {
+    await updateDoc(doc(db, TRANSACTIONS_COLLECTION, transactionId), {
+      orderStatus,
+      updatedAt: serverTimestamp(),
+    });
+    const existing = await getTransactionLocal(userId, transactionId);
+    if (existing) {
+      await saveTransactionLocal({ ...existing, orderStatus });
+    }
+    return { success: true };
+  } catch {
+    return {
+      success: false,
+      error: 'Could not update order. Check Firestore rules allow owner updates.',
+    };
+  }
+}
+
+export async function deleteTransaction(
+  transactionId: string,
+  userId: string,
+): Promise<{ success: true } | { success: false; error: string }> {
+  await deleteTransactionLocal(userId, transactionId);
+
+  if (transactionId.startsWith('local_')) {
+    return { success: true };
+  }
+
+  try {
+    await deleteDoc(doc(db, TRANSACTIONS_COLLECTION, transactionId));
+    return { success: true };
+  } catch {
+    return {
+      success: false,
+      error: 'Could not delete order. Check Firestore rules allow owner deletes.',
+    };
+  }
 }
 
 export function paymentMethodLabel(method: PaymentMethod): string {

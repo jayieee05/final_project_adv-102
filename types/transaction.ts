@@ -4,6 +4,9 @@ export type PaymentMethod = 'card' | 'gcash' | 'cod';
 
 export type TransactionStatus = 'paid' | 'pending' | 'failed';
 
+/** Fulfillment status managed by store admin */
+export type OrderStatus = 'pending' | 'completed' | 'returned';
+
 export type Transaction = {
   id: string;
   userId: string;
@@ -15,6 +18,7 @@ export type Transaction = {
   total: number;
   paymentMethod: PaymentMethod;
   paymentStatus: TransactionStatus;
+  orderStatus: OrderStatus;
   cardLast4?: string;
   shippingPhone?: string;
   shippingCity?: string;
