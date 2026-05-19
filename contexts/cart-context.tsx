@@ -1,7 +1,7 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 import { API_URL } from '@/config/api';
+import { storageGetItem, storageRemoveItem, storageSetItem } from '@/lib/storage';
 import type { CatalogProduct } from '@/data/catalog';
 
 import { useAuth } from './auth-context';
@@ -41,7 +41,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const loadFromStorage = useCallback(async () => {
-    const raw = await AsyncStorage.getItem(KEY_CART);
+    const raw = await storageGetItem(KEY_CART);
     if (raw) {
       try {
         setCartItems(JSON.parse(raw) as CartLine[]);
@@ -54,7 +54,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const saveLocal = useCallback(async (items: CartLine[]) => {
-    await AsyncStorage.setItem(KEY_CART, JSON.stringify(items));
+    await storageSetItem(KEY_CART, JSON.stringify(items));
   }, []);
 
   useEffect(() => {
@@ -79,7 +79,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             if (cancelled) return;
             if (data.success) {
               setCartItems(data.items ?? []);
-              const localCart = await AsyncStorage.getItem(KEY_CART);
+              const localCart = await storageGetItem(KEY_CART);
               if (localCart) {
                 try {
                   const localItems = JSON.parse(localCart) as CartLine[];
@@ -109,7 +109,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                       const reloadData = (await reload.json()) as { success?: boolean; items?: CartLine[] };
                       if (reloadData.success) setCartItems(reloadData.items ?? []);
                     }
-                    await AsyncStorage.removeItem(KEY_CART);
+                    await storageRemoveItem(KEY_CART);
                   }
                 } catch {
                   /* ignore */
@@ -310,7 +310,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }
     }
     setCartItems([]);
-    await AsyncStorage.removeItem(KEY_CART);
+    await storageRemoveItem(KEY_CART);
   }, [isAuthenticated, user, getToken]);
 
   const getTotalItems = useCallback(
