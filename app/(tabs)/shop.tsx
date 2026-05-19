@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useGlobalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   FlatList,
   Platform,
@@ -14,14 +15,21 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FinesseFonts } from '@/constants/finesse-theme';
+import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useCart } from '@/contexts/cart-context';
 import type { CatalogProduct, ProductCategory } from '@/data/catalog';
 import { getAllProducts } from '@/data/catalog';
-import { useMobileContentWidth, useTabScrollPadding } from '@/hooks/use-tab-scroll-padding';
+import { useMobileContentWidth } from '@/hooks/use-tab-scroll-padding';
+
+const TAB_BAR_RESTORE = {
+  backgroundColor: FinesseColors.background,
+  borderTopColor: FinesseColors.border,
+  paddingTop: 4,
+  minHeight: 52,
+} as const;
 
 /** Balanced warm neutrals: light base, chocolate type, gold highlights */
 const T = {
@@ -37,7 +45,6 @@ const T = {
   gold: '#b8942f',
   goldSoft: 'rgba(184, 148, 47, 0.18)',
   chipBg: '#f3efe8',
-  badge: '#c45a5a',
 };
 
 const CATS: {
@@ -90,8 +97,21 @@ const cardLift = Platform.select({
   default: {},
 });
 
+const floatShadow = Platform.select({
+  ios: {
+    shadowColor: '#1a1410',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+  },
+  android: { elevation: 10 },
+  default: {},
+});
+
 export default function ShopScreen() {
-  const { user } = useAuth();
+  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
+  const { user, isAuthenticated } = useAuth();
   const { addToCart, getTotalItems } = useCart();
   const params = useGlobalSearchParams<{ category?: string | string[] }>();
   const categoryParam = params.category;
@@ -104,7 +124,19 @@ export default function ShopScreen() {
   const [query, setQuery] = useState('');
   const { horizontalPad } = useMobileContentWidth();
   const cartCount = getTotalItems();
-  const scrollBottom = useTabScrollPadding();
+
+  useFocusEffect(
+    useCallback(() => {
+      navigation.setOptions({
+        tabBarStyle: { display: 'none', height: 0 },
+      });
+      return () => {
+        navigation.setOptions({
+          tabBarStyle: { ...TAB_BAR_RESTORE },
+        });
+      };
+    }, [navigation]),
+  );
 
   React.useEffect(() => {
     if (categoryStr && ['rings', 'necklaces', 'earrings', 'bracelets'].includes(categoryStr)) {
@@ -122,15 +154,13 @@ export default function ShopScreen() {
     });
   }, [selected, query]);
 
+  const floatPad = 88 + insets.bottom;
+
   const header = (
     <View style={{ paddingHorizontal: horizontalPad }}>
       <View style={[styles.heroCard, softShadow]}>
         <View style={styles.accentRule} />
         <View style={styles.heroTop}>
-          <Pressable style={styles.iconSoft} hitSlop={8}>
-            <Ionicons name="notifications-outline" size={21} color={T.inkSoft} />
-            <View style={styles.notifDot} />
-          </Pressable>
           <View style={styles.heroTopRight}>
             <View style={styles.heroDecor}>
               <View style={[styles.dc, styles.dc1]} />
@@ -254,7 +284,7 @@ export default function ShopScreen() {
           ListHeaderComponent={header}
           renderItem={renderProduct}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.listPad, { paddingBottom: scrollBottom }]}
+          contentContainerStyle={[styles.listPad, { paddingBottom: floatPad }]}
           ItemSeparatorComponent={() => <View style={{ height: 14 }} />}
           ListEmptyComponent={
             <Text style={[styles.empty, { paddingHorizontal: horizontalPad }]}>
@@ -262,6 +292,24 @@ export default function ShopScreen() {
             </Text>
           }
         />
+
+        <View style={[styles.floatBar, { bottom: 14 + insets.bottom }, floatShadow]}>
+          <Pressable style={styles.floatHit} onPress={() => router.push('/')} accessibilityLabel="Home">
+            <Ionicons name="home-outline" size={24} color={T.inkSoft} />
+          </Pressable>
+          <View style={styles.floatCenter}>
+            <Ionicons name="bag-handle" size={24} color={T.ink} />
+            <View style={styles.floatGoldBar} />
+          </View>
+          <Pressable
+            style={styles.floatHit}
+            onPress={() =>
+              isAuthenticated() ? router.push('/(tabs)/account') : router.push('/login')
+            }
+            accessibilityLabel="Account">
+            <Ionicons name="person-outline" size={24} color={T.inkSoft} />
+          </Pressable>
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -296,7 +344,7 @@ const styles = StyleSheet.create({
   },
   heroTop: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     marginBottom: 16,
     paddingLeft: 8,
@@ -309,17 +357,6 @@ const styles = StyleSheet.create({
     backgroundColor: T.chipBg,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  notifDot: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: T.badge,
-    borderWidth: 1.5,
-    borderColor: T.surface,
   },
   cartDot: {
     position: 'absolute',
@@ -547,5 +584,35 @@ const styles = StyleSheet.create({
     fontFamily: FinesseFonts.sans,
     fontSize: 15,
     color: T.inkMuted,
+  },
+
+  floatBar: {
+    position: 'absolute',
+    alignSelf: 'center',
+    left: 40,
+    right: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    backgroundColor: 'rgba(255,255,255,0.94)',
+    borderRadius: 999,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: T.line,
+  },
+  floatHit: {
+    minWidth: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+  },
+  floatCenter: { alignItems: 'center' },
+  floatGoldBar: {
+    marginTop: 4,
+    width: 26,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: T.gold,
   },
 });
