@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OrderReceipt } from '@/components/finesse/order-receipt';
+import { ReceiptSkeleton } from '@/components/finesse/skeleton-screens';
 import { FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { formatPeso } from '@/lib/format-currency';
@@ -126,7 +127,7 @@ export default function ReceiptScreen() {
         </View>
 
         {loading || authLoading ? (
-          <ActivityIndicator color="#d4b86a" style={{ marginTop: 48 }} />
+          <ReceiptSkeleton />
         ) : error ? (
           <View style={styles.errWrap}>
             <Text style={styles.err}>{error}</Text>

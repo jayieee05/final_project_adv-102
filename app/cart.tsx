@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CartSkeleton } from '@/components/finesse/skeleton-screens';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { cartLineImage, useCart } from '@/contexts/cart-context';
@@ -20,7 +21,7 @@ import { calculateOrderTotals } from '@/lib/transactions';
 
 export default function CartScreen() {
   const { isAuthenticated } = useAuth();
-  const { cartItems, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart();
+  const { cartItems, updateQuantity, removeFromCart, getTotalPrice, clearCart, isLoading } = useCart();
   const subtotal = getTotalPrice();
   const { shipping, total } = calculateOrderTotals(cartItems.length, subtotal);
 
@@ -44,7 +45,9 @@ export default function CartScreen() {
         </Pressable>
       </View>
 
-      {cartItems.length === 0 ? (
+      {isLoading ? (
+        <CartSkeleton />
+      ) : cartItems.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyTxt}>Your cart is empty.</Text>
           <Pressable style={styles.shopBtn} onPress={() => router.replace('/(tabs)/shop')}>

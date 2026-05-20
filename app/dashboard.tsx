@@ -15,6 +15,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DeleteOrderModal } from '@/components/finesse/delete-order-modal';
+import { DashboardSkeleton } from '@/components/finesse/skeleton-screens';
 import { FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { formatPeso } from '@/lib/format-currency';
@@ -283,7 +284,7 @@ export default function DashboardScreen() {
         <Text style={styles.welcome}>Hello, {user?.name?.split(' ')[0] ?? 'Owner'}</Text>
 
         {loading ? (
-          <ActivityIndicator color={T.gold} style={{ marginTop: 40 }} />
+          <DashboardSkeleton />
         ) : (
           <ScrollView
             contentContainerStyle={styles.scroll}

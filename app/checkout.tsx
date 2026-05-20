@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CheckoutSkeleton } from '@/components/finesse/skeleton-screens';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { cartLineImage, useCart } from '@/contexts/cart-context';
@@ -31,7 +32,7 @@ const METHODS: { id: PaymentMethod; label: string; icon: keyof typeof Ionicons.g
 ];
 
 export default function CheckoutScreen() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { cartItems, getTotalPrice, clearCart } = useCart();
 
   const [method, setMethod] = useState<PaymentMethod>('card');
@@ -111,12 +112,16 @@ export default function CheckoutScreen() {
     }
   };
 
-  if (!user || cartItems.length === 0) {
+  if (authLoading || !user) {
     return (
-      <SafeAreaView style={styles.safe}>
-        <ActivityIndicator color={FinesseColors.primaryDark} style={{ marginTop: 48 }} />
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+        <CheckoutSkeleton />
       </SafeAreaView>
     );
+  }
+
+  if (cartItems.length === 0) {
+    return null;
   }
 
   return (

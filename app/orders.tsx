@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
-  ActivityIndicator,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -12,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OrdersListSkeleton } from '@/components/finesse/skeleton-screens';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { formatPeso } from '@/lib/format-currency';
@@ -86,7 +86,7 @@ export default function OrdersScreen() {
       </View>
 
       {loading ? (
-        <ActivityIndicator color={FinesseColors.primaryDark} style={{ marginTop: 48 }} />
+        <OrdersListSkeleton />
       ) : (
         <ScrollView
           contentContainerStyle={styles.scroll}

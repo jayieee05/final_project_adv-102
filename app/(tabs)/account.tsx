@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AccountProfileSkeleton } from '@/components/finesse/skeleton-screens';
 import { FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useCart } from '@/contexts/cart-context';
@@ -104,11 +105,23 @@ function QuickLink({
 }
 
 export default function AccountScreen() {
-  const { user, isAuthenticated, isOwner } = useAuth();
+  const { user, isAuthenticated, isOwner, isLoading: authLoading } = useAuth();
   const { getTotalItems } = useCart();
   const scrollPad = useTabScrollPadding(24);
   const { horizontalPad } = useMobileContentWidth();
   const cartCount = getTotalItems();
+
+  if (authLoading) {
+    return (
+      <View style={styles.flex}>
+        <LinearGradient colors={[T.canvasTop, T.canvasBot]} style={StyleSheet.absoluteFill} />
+        <StatusBar style="dark" />
+        <SafeAreaView style={styles.safe} edges={['top']}>
+          <AccountProfileSkeleton />
+        </SafeAreaView>
+      </View>
+    );
+  }
 
   if (!isAuthenticated()) {
     return (
