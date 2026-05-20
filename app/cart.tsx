@@ -75,6 +75,9 @@ export default function CartScreen() {
                     {item.name}
                   </Text>
                   <Text style={styles.price}>{item.price}</Text>
+                  {item.size ? (
+                    <Text style={styles.sizeLine}>Size {item.size}</Text>
+                  ) : null}
                   <View style={styles.qtyRow}>
                     <Pressable
                       style={styles.qtyBtn}
@@ -170,6 +173,12 @@ const styles = StyleSheet.create({
     fontFamily: FinesseFonts.sansMedium,
     fontSize: 15,
     color: FinesseColors.primaryDark,
+    marginBottom: 4,
+  },
+  sizeLine: {
+    fontFamily: FinesseFonts.sans,
+    fontSize: 13,
+    color: FinesseColors.textLight,
     marginBottom: 10,
   },
   qtyRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },

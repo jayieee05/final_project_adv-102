@@ -150,6 +150,7 @@ export default function CheckoutScreen() {
                     {item.name}
                   </Text>
                   <Text style={styles.itemQty}>
+                    {item.size ? `Size ${item.size} · ` : ''}
                     Qty {item.quantity} · {formatPeso(item.priceValue * item.quantity)}
                   </Text>
                 </View>

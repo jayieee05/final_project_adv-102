@@ -14,9 +14,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ProductRelatedCarousel } from '@/components/finesse/product-related-carousel';
 import { ProductReviewsSection } from '@/components/finesse/product-reviews-section';
+import { ProductSizePicker } from '@/components/finesse/product-size-picker';
 import { FadeInView, ScalePressable } from '@/components/ui/motion';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { getProductById, productImage } from '@/data/catalog';
+import { getSizeOptionsForProduct, isValidSizeForProduct } from '@/data/product-sizes';
 import { useAuth } from '@/contexts/auth-context';
 import { useCart } from '@/contexts/cart-context';
 import { promptSignInForCart } from '@/lib/cart-auth';
@@ -28,7 +30,16 @@ export default function ProductDetailScreen() {
   const { isAuthenticated } = useAuth();
   const { addToCart, getTotalItems } = useCart();
   const [adding, setAdding] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [sizeError, setSizeError] = useState(false);
   const cartCount = getTotalItems();
+
+  React.useEffect(() => {
+    if (!product) return;
+    const sizes = getSizeOptionsForProduct(product);
+    setSelectedSize(sizes.length === 1 ? sizes[0] : null);
+    setSizeError(false);
+  }, [product?.id]);
 
   if (!product) {
     return (
@@ -52,9 +63,14 @@ export default function ProductDetailScreen() {
       promptSignInForCart();
       return;
     }
+    if (!isValidSizeForProduct(product, selectedSize)) {
+      setSizeError(true);
+      Alert.alert('Select a size', 'Please choose your size before adding this item to your bag.');
+      return;
+    }
     setAdding(true);
     try {
-      const added = await addToCart(product);
+      const added = await addToCart(product, { size: selectedSize });
       if (!added) return;
       const buttons: { text: string; style?: 'cancel' | 'default'; onPress?: () => void }[] = [
         { text: 'Keep shopping', style: 'cancel' },
@@ -102,9 +118,18 @@ export default function ProductDetailScreen() {
           <Text style={styles.price}>{product.price}</Text>
           <Text style={styles.meta}>Category · {product.category}</Text>
           <Text style={styles.desc}>
-            Handcrafted with care. Materials and sizing can be confirmed at checkout — same quality
-            promise as our full Finesse collection.
+            Handcrafted with care. Select your size below — same quality promise as our full Finesse
+            collection.
           </Text>
+          <ProductSizePicker
+            product={product}
+            selectedSize={selectedSize}
+            onSelect={(size) => {
+              setSelectedSize(size);
+              setSizeError(false);
+            }}
+            showError={sizeError}
+          />
           <ScalePressable
             style={[
               styles.cta,

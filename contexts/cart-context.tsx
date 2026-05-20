@@ -5,6 +5,7 @@ import { storageGetItem, storageRemoveItem, storageSetItem } from '@/lib/storage
 import type { ImageSource } from 'expo-image';
 
 import { getProductById, productImage, type CatalogProduct } from '@/data/catalog';
+import { isValidSizeForProduct, productRequiresSize } from '@/data/product-sizes';
 import { PRODUCT_IMAGES, type ProductImageKey, productImageSource } from '@/data/product-images';
 
 import { useAuth } from './auth-context';
@@ -174,6 +175,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const quantity = options.quantity ?? 1;
       const size = options.size ?? null;
       const material = options.material ?? 'Gold';
+
+      if (productRequiresSize(product) && !isValidSizeForProduct(product, size)) {
+        return false;
+      }
 
       if (user) {
         try {

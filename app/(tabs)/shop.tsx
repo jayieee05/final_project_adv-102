@@ -6,18 +6,20 @@ import { router, useGlobalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-    FlatList,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Alert,
+  FlatList,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AddToCartSizeModal } from '@/components/finesse/add-to-cart-size-modal';
 import { ScalePressable } from '@/components/ui/motion';
 import { MotionStagger } from '@/constants/motion';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
@@ -126,6 +128,8 @@ export default function ShopScreen() {
       : undefined;
   const [selected, setSelected] = useState<ProductCategory | 'all'>(initialCategory ?? 'all');
   const [query, setQuery] = useState('');
+  const [sizeModalProduct, setSizeModalProduct] = useState<CatalogProduct | null>(null);
+  const [addingToCart, setAddingToCart] = useState(false);
   const { horizontalPad } = useMobileContentWidth();
   const cartCount = getTotalItems();
 
@@ -246,7 +250,21 @@ export default function ShopScreen() {
       promptSignInForCart();
       return;
     }
-    void addToCart(item);
+    setSizeModalProduct(item);
+  };
+
+  const confirmAddWithSize = async (size: string) => {
+    if (!sizeModalProduct) return;
+    setAddingToCart(true);
+    try {
+      const added = await addToCart(sizeModalProduct, { size });
+      if (added) {
+        setSizeModalProduct(null);
+        Alert.alert('Added to cart', `${sizeModalProduct.name} (size ${size}) was added to your bag.`);
+      }
+    } finally {
+      setAddingToCart(false);
+    }
   };
 
   const renderProduct = ({ item, index }: { item: CatalogProduct; index: number }) => {
@@ -337,6 +355,14 @@ export default function ShopScreen() {
           </Pressable>
         </View>
       </SafeAreaView>
+
+      <AddToCartSizeModal
+        visible={sizeModalProduct !== null}
+        product={sizeModalProduct}
+        loading={addingToCart}
+        onClose={() => setSizeModalProduct(null)}
+        onConfirm={(size) => void confirmAddWithSize(size)}
+      />
     </View>
   );
 }

@@ -60,10 +60,12 @@ function BarcodeStrip({ code }: { code: string }) {
 function LineItem({
   name,
   qty,
+  size,
   lineTotal,
 }: {
   name: string;
   qty: number;
+  size?: string | null;
   lineTotal: number;
 }) {
   return (
@@ -74,7 +76,9 @@ function LineItem({
         </Text>
         <Text style={styles.linePrice}>{formatPeso(lineTotal)}</Text>
       </View>
-      <Text style={styles.lineQty}>× {qty}</Text>
+      <Text style={styles.lineQty}>
+        {size ? `Size ${size} · ` : ''}× {qty}
+      </Text>
     </View>
   );
 }
@@ -171,6 +175,7 @@ export function OrderReceipt({ transaction, showCelebration }: OrderReceiptProps
               key={`${item.id}-${item.size}-${item.material}`}
               name={item.name}
               qty={item.quantity}
+              size={item.size}
               lineTotal={item.priceValue * item.quantity}
             />
           ))}
