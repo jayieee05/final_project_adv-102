@@ -3,6 +3,14 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import * as Haptics from 'expo-haptics';
 import React from 'react';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
+import Animated, {
+  FadeInUp,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
+
+import { MotionSpring } from '@/constants/motion';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/contexts/auth-context';
@@ -62,7 +70,11 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   };
 
   return (
-    <View
+    <Animated.View
+      entering={FadeInUp.delay(120)
+        .springify()
+        .damping(MotionSpring.gentle.damping)
+        .stiffness(MotionSpring.gentle.stiffness)}
       pointerEvents="box-none"
       style={[styles.outer, { bottom: FLOATING_TAB_BOTTOM_OFFSET + insets.bottom }]}>
       <View style={[styles.floatBar, floatShadow]}>
@@ -74,29 +86,63 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
           const showBadge = tab.route === 'account' && !isAuthenticated();
 
           return (
-            <Pressable
+            <TabButton
               key={tab.route}
-              style={styles.floatHit}
+              isFocused={isFocused}
+              showBadge={showBadge}
+              tab={tab}
               onPress={() => onTabPress(tab.route, route.key, isFocused)}
-              accessibilityRole="button"
-              accessibilityLabel={tab.label}
-              accessibilityState={isFocused ? { selected: true } : {}}>
-              {isFocused ? (
-                <View style={styles.floatCenter}>
-                  <Ionicons name={tab.active} size={24} color={T.ink} />
-                  <View style={styles.floatGoldBar} />
-                </View>
-              ) : (
-                <View style={styles.iconSlot}>
-                  <Ionicons name={tab.inactive} size={24} color={T.inkSoft} />
-                  {showBadge ? <View style={styles.badge} /> : null}
-                </View>
-              )}
-            </Pressable>
+            />
           );
         })}
       </View>
-    </View>
+    </Animated.View>
+  );
+}
+
+function TabButton({
+  tab,
+  isFocused,
+  showBadge,
+  onPress,
+}: {
+  tab: (typeof TABS)[number];
+  isFocused: boolean;
+  showBadge: boolean;
+  onPress: () => void;
+}) {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <Pressable
+      style={styles.floatHit}
+      onPress={onPress}
+      onPressIn={() => {
+        scale.value = withSpring(0.88, MotionSpring.snappy);
+      }}
+      onPressOut={() => {
+        scale.value = withSpring(1, MotionSpring.snappy);
+      }}
+      accessibilityRole="button"
+      accessibilityLabel={tab.label}
+      accessibilityState={isFocused ? { selected: true } : {}}>
+      <Animated.View style={animatedStyle}>
+        {isFocused ? (
+          <View style={styles.floatCenter}>
+            <Ionicons name={tab.active} size={24} color={T.ink} />
+            <View style={styles.floatGoldBar} />
+          </View>
+        ) : (
+          <View style={styles.iconSlot}>
+            <Ionicons name={tab.inactive} size={24} color={T.inkSoft} />
+            {showBadge ? <View style={styles.badge} /> : null}
+          </View>
+        )}
+      </Animated.View>
+    </Pressable>
   );
 }
 

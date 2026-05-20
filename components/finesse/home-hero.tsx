@@ -2,8 +2,9 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
+import { ScalePressable } from '@/components/ui/motion';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { HERO_LIFESTYLE_BG } from '@/data/product-images';
 
@@ -54,11 +55,11 @@ export function HomeHero() {
         <Text style={[styles.sub, { fontSize: layout.subSize, paddingHorizontal: compact ? 4 : 0 }]}>
           Discover our collection of handcrafted jewelry pieces designed to last a lifetime
         </Text>
-        <Pressable
+        <ScalePressable
           onPress={() => router.push('/(tabs)/shop')}
-          style={({ pressed }) => [styles.cta, compact && styles.ctaCompact, pressed && { opacity: 0.9 }]}>
+          style={[styles.cta, compact && styles.ctaCompact]}>
           <Text style={[styles.ctaText, compact && styles.ctaTextCompact]}>SHOP NOW</Text>
-        </Pressable>
+        </ScalePressable>
       </View>
     </View>
   );

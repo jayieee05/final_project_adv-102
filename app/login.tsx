@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { FadeInView, ScalePressable } from '@/components/ui/motion';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { validateLoginInput } from '@/lib/auth-validation';
@@ -56,13 +57,15 @@ export default function LoginScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <Text style={styles.logo}>Finesse</Text>
-          <Text style={styles.welcome}>
-            Hello, <Text style={styles.accent}>welcome!</Text>
-          </Text>
-          <Text style={styles.tagline}>Crafting timeless elegance, one piece at a time.</Text>
+          <FadeInView index={0}>
+            <Text style={styles.logo}>Finesse</Text>
+            <Text style={styles.welcome}>
+              Hello, <Text style={styles.accent}>welcome!</Text>
+            </Text>
+            <Text style={styles.tagline}>Crafting timeless elegance, one piece at a time.</Text>
+          </FadeInView>
 
-          <View style={styles.card}>
+          <FadeInView index={1} style={styles.card}>
             <Text style={styles.cardTitle}>Sign in</Text>
             {error ? <Text style={styles.err}>{error}</Text> : null}
             <Text style={styles.label}>Email</Text>
@@ -84,23 +87,24 @@ export default function LoginScreen() {
               placeholder="••••••••"
               placeholderTextColor={FinesseColors.textLight}
             />
-            <Pressable
+            <ScalePressable
               style={[styles.btn, loading && { opacity: 0.75 }]}
               onPress={submit}
-              disabled={loading}>
+              disabled={loading}
+              haptic={!loading}>
               {loading ? (
                 <ActivityIndicator color={FinesseColors.secondary} />
               ) : (
                 <Text style={styles.btnTxt}>LOGIN</Text>
               )}
-            </Pressable>
+            </ScalePressable>
             <Pressable onPress={() => router.push('/signup')} style={styles.linkRow}>
               <Text style={styles.link}>Need an account? Sign up</Text>
             </Pressable>
             <Pressable onPress={() => router.back()} style={styles.back}>
               <Text style={styles.backTxt}>← Back</Text>
             </Pressable>
-          </View>
+          </FadeInView>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

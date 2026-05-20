@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { FadeInView, ScalePressable } from '@/components/ui/motion';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { MIN_PASSWORD_LENGTH, validateSignupInput } from '@/lib/auth-validation';
@@ -80,13 +81,15 @@ export default function SignupScreen() {
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <Text style={styles.logo}>Finesse</Text>
-          <Text style={styles.title}>Create your account</Text>
-          <Text style={styles.tagline}>
-            Tell us a bit about yourself so we can personalize orders and delivery.
-          </Text>
+          <FadeInView index={0}>
+            <Text style={styles.logo}>Finesse</Text>
+            <Text style={styles.title}>Create your account</Text>
+            <Text style={styles.tagline}>
+              Tell us a bit about yourself so we can personalize orders and delivery.
+            </Text>
+          </FadeInView>
 
-          <View style={styles.card}>
+          <FadeInView index={1} style={styles.card}>
             {error ? <Text style={styles.err}>{error}</Text> : null}
 
             <Text style={styles.sectionTitle}>Account</Text>
@@ -178,16 +181,17 @@ export default function SignupScreen() {
 
             <Text style={styles.finePrint}>* Required fields</Text>
 
-            <Pressable
+            <ScalePressable
               style={[styles.btn, loading && { opacity: 0.75 }]}
               onPress={submit}
-              disabled={loading}>
+              disabled={loading}
+              haptic={!loading}>
               {loading ? (
                 <ActivityIndicator color={FinesseColors.background} />
               ) : (
                 <Text style={styles.btnTxt}>SIGN UP</Text>
               )}
-            </Pressable>
+            </ScalePressable>
 
             <Pressable onPress={() => router.push('/login')} style={styles.linkRow}>
               <Text style={styles.link}>Already have an account? Log in</Text>
@@ -195,7 +199,7 @@ export default function SignupScreen() {
             <Pressable onPress={() => router.back()} style={styles.back}>
               <Text style={styles.backTxt}>← Back</Text>
             </Pressable>
-          </View>
+          </FadeInView>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

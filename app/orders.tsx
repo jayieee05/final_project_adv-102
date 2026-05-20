@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OrdersListSkeleton } from '@/components/finesse/skeleton-screens';
+import { FadeInView } from '@/components/ui/motion';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { formatPeso } from '@/lib/format-currency';
@@ -104,9 +105,9 @@ export default function OrdersScreen() {
               </Pressable>
             </View>
           ) : (
-            orders.map((tx) => (
+            orders.map((tx, index) => (
+              <FadeInView key={tx.id} index={index}>
               <Pressable
-                key={tx.id}
                 style={styles.card}
                 onPress={() =>
                   router.push({ pathname: '/receipt/[id]', params: { id: tx.id } })
@@ -153,6 +154,7 @@ export default function OrdersScreen() {
                   <Ionicons name="chevron-forward" size={16} color={FinesseColors.textLight} />
                 </View>
               </Pressable>
+              </FadeInView>
             ))
           )}
         </ScrollView>

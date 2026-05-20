@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CheckoutSkeleton } from '@/components/finesse/skeleton-screens';
+import { FadeInView, ScalePressable } from '@/components/ui/motion';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { cartLineImage, useCart } from '@/contexts/cart-context';
@@ -138,6 +139,7 @@ export default function CheckoutScreen() {
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <FadeInView index={0}>
           <Text style={styles.sectionLabel}>Order summary</Text>
           <View style={styles.card}>
             {cartItems.map((item) => (
@@ -166,7 +168,9 @@ export default function CheckoutScreen() {
               <Text style={styles.totalVal}>{formatPeso(total)}</Text>
             </View>
           </View>
+          </FadeInView>
 
+          <FadeInView index={1}>
           <Text style={styles.sectionLabel}>Deliver to</Text>
           <View style={styles.card}>
             <Text style={styles.shipName}>{user.name}</Text>
@@ -180,7 +184,9 @@ export default function CheckoutScreen() {
               <Text style={styles.shipHint}>Add address in your profile for faster delivery.</Text>
             )}
           </View>
+          </FadeInView>
 
+          <FadeInView index={2}>
           <Text style={styles.sectionLabel}>Payment method</Text>
           <View style={styles.methodRow}>
             {METHODS.map((m) => (
@@ -280,20 +286,22 @@ export default function CheckoutScreen() {
           ) : null}
 
           {error ? <Text style={styles.err}>{error}</Text> : null}
+          </FadeInView>
         </ScrollView>
 
-        <View style={styles.footer}>
-          <Pressable
+        <FadeInView delay={60} style={styles.footer}>
+          <ScalePressable
             style={[styles.payBtn, loading && { opacity: 0.75 }]}
             onPress={() => void pay()}
-            disabled={loading}>
+            disabled={loading}
+            haptic={!loading}>
             {loading ? (
               <ActivityIndicator color={FinesseColors.secondary} />
             ) : (
               <Text style={styles.payBtnTxt}>PAY {formatPeso(total)}</Text>
             )}
-          </Pressable>
-        </View>
+          </ScalePressable>
+        </FadeInView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

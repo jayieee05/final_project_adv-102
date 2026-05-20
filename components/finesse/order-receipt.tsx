@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { FadeInView, PopInView } from '@/components/ui/motion';
 import { FinesseFonts } from '@/constants/finesse-theme';
 import { formatPeso } from '@/lib/format-currency';
 import {
@@ -93,14 +94,14 @@ export function OrderReceipt({ transaction, showCelebration }: OrderReceiptProps
   return (
     <View style={styles.outer}>
       {showCelebration ? (
-        <View style={styles.celebration}>
+        <PopInView style={styles.celebration}>
           <Ionicons name="sparkles" size={18} color={GOLD_LIGHT} />
           <Text style={styles.celebrationTxt}>Thank you for your purchase</Text>
           <Ionicons name="sparkles" size={18} color={GOLD_LIGHT} />
-        </View>
+        </PopInView>
       ) : null}
 
-      <View style={styles.paper}>
+      <FadeInView from="fade" index={showCelebration ? 1 : 0} style={styles.paper}>
         <LinearGradient
           colors={[GOLD_DEEP, GOLD, GOLD_LIGHT]}
           start={{ x: 0, y: 0 }}
@@ -220,7 +221,7 @@ export function OrderReceipt({ transaction, showCelebration }: OrderReceiptProps
         </View>
 
         <Perforation />
-      </View>
+      </FadeInView>
     </View>
   );
 }

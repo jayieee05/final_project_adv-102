@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DeleteOrderModal } from '@/components/finesse/delete-order-modal';
 import { DashboardSkeleton } from '@/components/finesse/skeleton-screens';
+import { FadeInView } from '@/components/ui/motion';
 import { FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { formatPeso } from '@/lib/format-currency';
@@ -337,14 +338,15 @@ export default function DashboardScreen() {
                 </Text>
               </View>
             ) : (
-              filtered.map((order) => (
-                <OrderCard
-                  key={order.id}
-                  order={order}
-                  updating={updatingId === order.id}
-                  onStatusChange={(status) => void handleStatusChange(order, status)}
-                  onDelete={() => handleDelete(order)}
-                />
+              filtered.map((order, index) => (
+                <FadeInView key={order.id} index={index}>
+                  <OrderCard
+                    order={order}
+                    updating={updatingId === order.id}
+                    onStatusChange={(status) => void handleStatusChange(order, status)}
+                    onDelete={() => handleDelete(order)}
+                  />
+                </FadeInView>
               ))
             )}
           </ScrollView>

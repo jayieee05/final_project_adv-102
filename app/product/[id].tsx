@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { FadeInView, ScalePressable } from '@/components/ui/motion';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { getProductById, productImage } from '@/data/catalog';
 import { useAuth } from '@/contexts/auth-context';
@@ -63,8 +64,10 @@ export default function ProductDetailScreen() {
         <Text style={styles.backTxt}>Back</Text>
       </Pressable>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Image source={productImage(product)} style={styles.heroImg} contentFit="cover" />
-        <View style={styles.body}>
+        <FadeInView from="fade" index={0}>
+          <Image source={productImage(product)} style={styles.heroImg} contentFit="cover" />
+        </FadeInView>
+        <FadeInView index={1} style={styles.body}>
           <Text style={styles.name}>{product.name}</Text>
           <Text style={styles.price}>{product.price}</Text>
           <Text style={styles.meta}>Category · {product.category}</Text>
@@ -72,13 +75,14 @@ export default function ProductDetailScreen() {
             Handcrafted with care. Materials and sizing can be confirmed at checkout — same quality
             promise as our full Finesse collection.
           </Text>
-          <Pressable
+          <ScalePressable
             style={[styles.cta, adding && { opacity: 0.7 }]}
             onPress={handleAdd}
-            disabled={adding}>
+            disabled={adding}
+            haptic={!adding}>
             <Text style={styles.ctaTxt}>{adding ? 'ADDING…' : 'ADD TO CART'}</Text>
-          </Pressable>
-        </View>
+          </ScalePressable>
+        </FadeInView>
       </ScrollView>
     </SafeAreaView>
   );

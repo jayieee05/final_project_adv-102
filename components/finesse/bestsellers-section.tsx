@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 
+import { FadeInView, ScalePressable } from '@/components/ui/motion';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { getBestsellers, productImage } from '@/data/catalog';
 
@@ -41,19 +42,21 @@ export function BestsellersSection() {
         disableIntervalMomentum
         contentContainerStyle={{ paddingRight: horizontalPad + 32 }}
         ItemSeparatorComponent={() => <View style={{ width: CARD_GAP }} />}
-        renderItem={({ item: p }) => (
+        renderItem={({ item: p, index }) => (
+          <FadeInView index={index} delay={80}>
           <View style={[styles.card, { width: cardWidth }]}>
             <Image source={productImage(p)} style={styles.img} contentFit="cover" />
             <Text style={[styles.name, isCompact && styles.nameCompact]} numberOfLines={2}>
               {p.name}
             </Text>
             <Text style={styles.price}>{p.price}</Text>
-            <Pressable
+            <ScalePressable
               onPress={() => router.push(`/product/${p.id}`)}
-              style={({ pressed }) => [styles.btn, pressed && { opacity: 0.85 }]}>
+              style={styles.btn}>
               <Text style={styles.btnText}>View Details</Text>
-            </Pressable>
+            </ScalePressable>
           </View>
+          </FadeInView>
         )}
       />
     </View>

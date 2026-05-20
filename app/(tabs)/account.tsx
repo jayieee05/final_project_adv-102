@@ -14,6 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AccountProfileSkeleton } from '@/components/finesse/skeleton-screens';
+import { FadeInView } from '@/components/ui/motion';
 import { FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useCart } from '@/contexts/cart-context';
@@ -186,7 +187,7 @@ export default function AccountScreen() {
             styles.scroll,
             { paddingHorizontal: horizontalPad, paddingBottom: scrollPad },
           ]}>
-          <View style={[styles.heroCard, softShadow]}>
+          <FadeInView index={0} style={[styles.heroCard, softShadow]}>
             <View style={styles.accentRule} />
             <View style={styles.profileRow}>
               <View style={styles.avatar}>
@@ -200,13 +201,14 @@ export default function AccountScreen() {
                 </Text>
               </View>
             </View>
-          </View>
+          </FadeInView>
 
-          <View style={styles.statsRow}>
+          <FadeInView index={1} style={styles.statsRow}>
             <StatTile label="In cart" value={String(cartCount)} icon="bag-outline" />
             <StatTile label="Status" value="Active" icon="sparkles-outline" />
-          </View>
+          </FadeInView>
 
+          <FadeInView index={2}>
           <Text style={styles.sectionTitle}>Contact & delivery</Text>
           <View style={[styles.sectionCard, cardLift]}>
             {[
@@ -239,7 +241,9 @@ export default function AccountScreen() {
               </Text>
             ) : null}
           </View>
+          </FadeInView>
 
+          <FadeInView index={3}>
           <Text style={styles.sectionTitle}>Explore</Text>
           <View style={styles.quickLinks}>
             <QuickLink
@@ -278,6 +282,7 @@ export default function AccountScreen() {
               the shop anytime to discover new pieces curated for you.
             </Text>
           </View>
+          </FadeInView>
         </ScrollView>
       </SafeAreaView>
     </View>

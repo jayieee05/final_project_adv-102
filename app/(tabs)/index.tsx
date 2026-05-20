@@ -2,6 +2,7 @@ import React from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { FadeInView } from '@/components/ui/motion';
 import { AboutPreviewSection } from '@/components/finesse/about-preview-section';
 import { AppHeader } from '@/components/finesse/app-header';
 import { BestsellersSection } from '@/components/finesse/bestsellers-section';
@@ -20,10 +21,18 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.scroll, { paddingBottom: scrollBottom }]}>
-        <HomeHero />
-        <FeaturedCategoriesSection />
-        <BestsellersSection />
-        <AboutPreviewSection />
+        <FadeInView index={0}>
+          <HomeHero />
+        </FadeInView>
+        <FadeInView index={1}>
+          <FeaturedCategoriesSection />
+        </FadeInView>
+        <FadeInView index={2}>
+          <BestsellersSection />
+        </FadeInView>
+        <FadeInView index={3}>
+          <AboutPreviewSection />
+        </FadeInView>
       </ScrollView>
     </SafeAreaView>
   );

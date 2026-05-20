@@ -78,14 +78,20 @@ export default function RootLayout() {
         <ThemeProvider value={theme}>
           <AuthProvider>
             <CartProvider>
-              <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: FinesseColors.background } }}>
-                <Stack.Screen name="(tabs)" />
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: FinesseColors.background },
+                  animation: 'slide_from_right',
+                  animationDuration: 280,
+                }}>
+                <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
                 <Stack.Screen name="product/[id]" />
-                <Stack.Screen name="login" />
-                <Stack.Screen name="signup" />
-                <Stack.Screen name="cart" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="login" options={{ animation: 'fade_from_bottom' }} />
+                <Stack.Screen name="signup" options={{ animation: 'fade_from_bottom' }} />
+                <Stack.Screen name="cart" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
                 <Stack.Screen name="checkout" />
-                <Stack.Screen name="checkout-success" />
+                <Stack.Screen name="checkout-success" options={{ animation: 'fade' }} />
                 <Stack.Screen name="receipt/[id]" />
                 <Stack.Screen name="orders" />
                 <Stack.Screen name="dashboard" />

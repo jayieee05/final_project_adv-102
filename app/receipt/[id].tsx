@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OrderReceipt } from '@/components/finesse/order-receipt';
 import { ReceiptSkeleton } from '@/components/finesse/skeleton-screens';
+import { FadeInView, ScalePressable } from '@/components/ui/motion';
 import { FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { formatPeso } from '@/lib/format-currency';
@@ -140,24 +141,28 @@ export default function ReceiptScreen() {
             <ScrollView
               contentContainerStyle={styles.scroll}
               showsVerticalScrollIndicator={false}>
-              <OrderReceipt transaction={transaction} showCelebration={isNewPurchase} />
+              <FadeInView from="fade" index={0}>
+                <OrderReceipt transaction={transaction} showCelebration={isNewPurchase} />
+              </FadeInView>
             </ScrollView>
-            <View style={styles.actions}>
+            <FadeInView index={1} delay={100} style={styles.actions}>
               {isOwner() ? (
-                <Pressable style={styles.primaryBtn} onPress={() => router.replace('/dashboard')}>
+                <ScalePressable
+                  style={styles.primaryBtn}
+                  onPress={() => router.replace('/dashboard')}>
                   <Text style={styles.primaryBtnTxt}>BACK TO DASHBOARD</Text>
-                </Pressable>
+                </ScalePressable>
               ) : (
-                <Pressable style={styles.primaryBtn} onPress={() => router.replace('/orders')}>
+                <ScalePressable style={styles.primaryBtn} onPress={() => router.replace('/orders')}>
                   <Text style={styles.primaryBtnTxt}>ALL ORDERS</Text>
-                </Pressable>
+                </ScalePressable>
               )}
-              <Pressable
+              <ScalePressable
                 style={styles.secondaryBtn}
                 onPress={() => router.replace('/(tabs)/shop')}>
                 <Text style={styles.secondaryBtnTxt}>Continue shopping</Text>
-              </Pressable>
-            </View>
+              </ScalePressable>
+            </FadeInView>
           </>
         ) : null}
       </SafeAreaView>

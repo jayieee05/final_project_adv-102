@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 
+import { FadeInView, ScalePressable } from '@/components/ui/motion';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { CATEGORIES } from '@/data/catalog';
 import { productImageSource } from '@/data/product-images';
@@ -26,11 +27,11 @@ export function SectionTitle({
   const { width } = useWindowDimensions();
   const compact = width < 380;
   return (
-    <View style={[st.titleBlock, { marginBottom: compact ? 20 : 28 }]}>
+    <FadeInView from="up" index={0} style={[st.titleBlock, { marginBottom: compact ? 20 : 28 }]}>
       <Text style={[st.eyebrow, compact && st.eyebrowCompact]}>{eyebrow}</Text>
       <Text style={[st.title, compact && st.titleCompact]}>{title}</Text>
       <View style={st.underline} />
-    </View>
+    </FadeInView>
   );
 }
 
@@ -88,16 +89,18 @@ export function FeaturedCategoriesSection() {
         disableIntervalMomentum
         contentContainerStyle={{ paddingRight: horizontalPad + 32 }}
         ItemSeparatorComponent={() => <View style={{ width: CARD_GAP }} />}
-        renderItem={({ item: c }) => (
+        renderItem={({ item: c, index }) => (
+          <FadeInView index={index} delay={80}>
           <View style={[styles.card, { width: cardWidth }]}>
             <Image source={productImageSource(c.imageKey)} style={styles.cardImg} contentFit="cover" />
             <Text style={[styles.cardName, isCompact && styles.cardNameCompact]}>{c.name}</Text>
-            <Pressable
+            <ScalePressable
               onPress={() => router.push(`/(tabs)/shop?category=${c.slug}` as never)}
-              style={({ pressed }) => [styles.btn, pressed && { opacity: 0.85 }]}>
+              style={styles.btn}>
               <Text style={styles.btnText}>View Collection</Text>
-            </Pressable>
+            </ScalePressable>
           </View>
+          </FadeInView>
         )}
       />
     </View>

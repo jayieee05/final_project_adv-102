@@ -9,8 +9,11 @@ import {
   Text,
   View,
 } from 'react-native';
+import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
 
+import { ScalePressable } from '@/components/ui/motion';
 import { FinesseFonts } from '@/constants/finesse-theme';
+import { MotionSpring } from '@/constants/motion';
 import { formatPeso } from '@/lib/format-currency';
 import { orderStatusLabel } from '@/lib/order-status';
 import { paymentMethodLabel } from '@/lib/transactions';
@@ -37,10 +40,15 @@ export function DeleteOrderModal({
   const status = order.orderStatus ?? 'pending';
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
-      <Pressable style={styles.backdrop} onPress={loading ? undefined : onCancel}>
-        <View style={styles.cardWrap} onStartShouldSetResponder={() => true}>
-          <View style={styles.card}>
+    <Modal visible={visible} transparent animationType="none" onRequestClose={onCancel}>
+      <Animated.View entering={FadeIn.duration(220)} style={styles.backdrop}>
+      <Pressable style={StyleSheet.absoluteFill} onPress={loading ? undefined : onCancel} />
+        <Animated.View
+          entering={ZoomIn.springify()
+            .damping(MotionSpring.bouncy.damping)
+            .stiffness(200)}
+          style={styles.cardWrap}>
+          <View style={styles.card} onStartShouldSetResponder={() => true}>
             <LinearGradient
               colors={['#8b4a4a', '#a85c5c', '#c47a7a']}
               start={{ x: 0, y: 0 }}
@@ -103,10 +111,11 @@ export function DeleteOrderModal({
                 disabled={loading}>
                 <Text style={styles.cancelTxt}>Keep order</Text>
               </Pressable>
-              <Pressable
+              <ScalePressable
                 style={[styles.deleteBtn, loading && styles.btnDisabled]}
                 onPress={onConfirm}
-                disabled={loading}>
+                disabled={loading}
+                haptic={!loading}>
                 <LinearGradient
                   colors={['#7a3f3f', '#8b4a4a', '#a85c5c']}
                   start={{ x: 0, y: 0 }}
@@ -121,11 +130,11 @@ export function DeleteOrderModal({
                     </>
                   )}
                 </LinearGradient>
-              </Pressable>
+              </ScalePressable>
             </View>
           </View>
-        </View>
-      </Pressable>
+        </Animated.View>
+      </Animated.View>
     </Modal>
   );
 }

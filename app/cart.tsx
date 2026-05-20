@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CartSkeleton } from '@/components/finesse/skeleton-screens';
+import { FadeInView, ScalePressable } from '@/components/ui/motion';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { cartLineImage, useCart } from '@/contexts/cart-context';
@@ -57,8 +58,9 @@ export default function CartScreen() {
       ) : (
         <>
           <ScrollView contentContainerStyle={styles.list}>
-            {cartItems.map((item) => (
-              <View key={`${item.id}-${item.size}-${item.material}`} style={styles.row}>
+            {cartItems.map((item, index) => (
+              <FadeInView key={`${item.id}-${item.size}-${item.material}`} index={index}>
+              <View style={styles.row}>
                 <Image source={cartLineImage(item)} style={styles.thumb} contentFit="cover" />
                 <View style={styles.info}>
                   <Text style={styles.name} numberOfLines={2}>
@@ -89,9 +91,10 @@ export default function CartScreen() {
                   </View>
                 </View>
               </View>
+              </FadeInView>
             ))}
           </ScrollView>
-          <View style={styles.footer}>
+          <FadeInView delay={80} style={styles.footer}>
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Subtotal</Text>
               <Text style={styles.totalVal}>{formatPeso(subtotal)}</Text>
@@ -104,9 +107,9 @@ export default function CartScreen() {
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalVal}>{formatPeso(total)}</Text>
             </View>
-            <Pressable style={styles.checkout} onPress={goCheckout}>
+            <ScalePressable style={styles.checkout} onPress={goCheckout}>
               <Text style={styles.checkoutTxt}>PROCEED TO PAYMENT</Text>
-            </Pressable>
+            </ScalePressable>
             <Pressable
               onPress={() =>
                 Alert.alert('Clear cart?', 'This removes all items.', [
@@ -116,7 +119,7 @@ export default function CartScreen() {
               }>
               <Text style={styles.clear}>Clear cart</Text>
             </Pressable>
-          </View>
+          </FadeInView>
         </>
       )}
     </SafeAreaView>

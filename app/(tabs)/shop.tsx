@@ -15,8 +15,11 @@ import {
     TextInput,
     View,
 } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ScalePressable } from '@/components/ui/motion';
+import { MotionStagger } from '@/constants/motion';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useCart } from '@/contexts/cart-context';
@@ -237,10 +240,15 @@ export default function ShopScreen() {
     </View>
   );
 
-  const renderProduct = ({ item }: { item: CatalogProduct }) => {
+  const renderProduct = ({ item, index }: { item: CatalogProduct; index: number }) => {
     const r = productRating(item);
     return (
-      <View style={[styles.card, cardLift, { marginHorizontal: horizontalPad }]}>
+      <Animated.View
+        entering={FadeInDown.delay(Math.min(index, 8) * MotionStagger.item)
+          .springify()
+          .damping(20)
+          .stiffness(200)}
+        style={[styles.card, cardLift, { marginHorizontal: horizontalPad }]}>
         <Pressable onPress={() => router.push(`/product/${item.id}`)} style={styles.cardPress}>
           <View style={styles.imgShell}>
             <Image source={productImage(item)} style={styles.img} contentFit="cover" />
@@ -259,17 +267,18 @@ export default function ShopScreen() {
             <Text style={styles.pHint}>Hand-finished · Ready to ship</Text>
             <View style={styles.cardBottom}>
               <Text style={styles.pPrice}>{item.price}</Text>
-              <Pressable
+              <ScalePressable
                 style={styles.addPill}
+                scale={0.9}
                 onPress={() => void addToCart(item)}
                 hitSlop={6}
                 accessibilityLabel={`Add ${item.name}`}>
                 <Ionicons name="add" size={20} color={T.ink} />
-              </Pressable>
+              </ScalePressable>
             </View>
           </View>
         </Pressable>
-      </View>
+      </Animated.View>
     );
   };
 
