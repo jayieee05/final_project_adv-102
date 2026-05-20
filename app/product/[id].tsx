@@ -19,6 +19,7 @@ import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { getProductById, productImage } from '@/data/catalog';
 import { useAuth } from '@/contexts/auth-context';
 import { useCart } from '@/contexts/cart-context';
+import { promptSignInForCart } from '@/lib/cart-auth';
 
 export default function ProductDetailScreen() {
   const raw = useLocalSearchParams<{ id: string | string[] }>();
@@ -47,9 +48,14 @@ export default function ProductDetailScreen() {
   }
 
   const handleAdd = async () => {
+    if (!isAuthenticated()) {
+      promptSignInForCart();
+      return;
+    }
     setAdding(true);
     try {
-      await addToCart(product);
+      const added = await addToCart(product);
+      if (!added) return;
       const buttons: { text: string; style?: 'cancel' | 'default'; onPress?: () => void }[] = [
         { text: 'Keep shopping', style: 'cancel' },
         { text: 'View cart', onPress: () => router.push('/cart') },
@@ -100,11 +106,17 @@ export default function ProductDetailScreen() {
             promise as our full Finesse collection.
           </Text>
           <ScalePressable
-            style={[styles.cta, adding && { opacity: 0.7 }]}
+            style={[
+              styles.cta,
+              adding && { opacity: 0.7 },
+              !isAuthenticated() && styles.ctaDisabled,
+            ]}
             onPress={handleAdd}
             disabled={adding}
-            haptic={!adding}>
-            <Text style={styles.ctaTxt}>{adding ? 'ADDING…' : 'ADD TO CART'}</Text>
+            haptic={!adding && isAuthenticated()}>
+            <Text style={styles.ctaTxt}>
+              {adding ? 'ADDING…' : isAuthenticated() ? 'ADD TO CART' : 'SIGN IN TO ADD'}
+            </Text>
           </ScalePressable>
         </FadeInView>
 
@@ -206,6 +218,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     alignItems: 'center',
     borderRadius: 2,
+  },
+  ctaDisabled: {
+    backgroundColor: FinesseColors.border,
+    opacity: 0.85,
   },
   ctaTxt: {
     fontFamily: FinesseFonts.sansMedium,

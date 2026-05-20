@@ -38,7 +38,7 @@ type CartContextValue = {
   addToCart: (
     product: CatalogProduct,
     options?: { quantity?: number; size?: string | null; material?: string },
-  ) => Promise<void>;
+  ) => Promise<boolean>;
   removeFromCart: (itemId: number, size?: string | null, material?: string) => Promise<void>;
   updateQuantity: (itemId: number, newQuantity: number, size?: string | null, material?: string) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -145,10 +145,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           }
           await loadFromStorage();
         } else {
-          await loadFromStorage();
+          setCartItems([]);
         }
       } catch {
-        await loadFromStorage();
+        if (isAuthenticated()) {
+          await loadFromStorage();
+        } else {
+          setCartItems([]);
+        }
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -163,11 +167,15 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       product: CatalogProduct,
       options: { quantity?: number; size?: string | null; material?: string } = {},
     ) => {
+      if (!isAuthenticated()) {
+        return false;
+      }
+
       const quantity = options.quantity ?? 1;
       const size = options.size ?? null;
       const material = options.material ?? 'Gold';
 
-      if (isAuthenticated() && user) {
+      if (user) {
         try {
           const token = await getToken();
           if (token) {
@@ -188,7 +196,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               const data = (await response.json()) as { success?: boolean; items?: CartLine[] };
               if (data.success) {
                 setCartItems(data.items ?? []);
-                return;
+                return true;
               }
             }
           }
@@ -224,6 +232,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         void saveLocal(next);
         return next;
       });
+      return true;
     },
     [isAuthenticated, user, getToken, saveLocal],
   );
@@ -271,7 +280,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         await removeFromCart(itemId, size, material);
         return;
       }
-      if (isAuthenticated() && user) {
+
+      if (!isAuthenticated()) {
+        return;
+      }
+
+      const current = cartItems.find(
+        (item) => item.id === itemId && item.size === size && item.material === material,
+      );
+      if (current && newQuantity > current.quantity) {
+        return;
+      }
+
+      if (user) {
         try {
           const token = await getToken();
           if (token) {
@@ -310,7 +331,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return next;
       });
     },
-    [isAuthenticated, user, getToken, saveLocal, removeFromCart],
+    [isAuthenticated, user, getToken, saveLocal, removeFromCart, cartItems],
   );
 
   const clearCart = useCallback(async () => {

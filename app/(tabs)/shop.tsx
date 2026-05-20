@@ -23,6 +23,7 @@ import { MotionStagger } from '@/constants/motion';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { useCart } from '@/contexts/cart-context';
+import { promptSignInForCart } from '@/lib/cart-auth';
 import type { CatalogProduct, ProductCategory } from '@/data/catalog';
 import { getAllProducts, productImage } from '@/data/catalog';
 import { useMobileContentWidth } from '@/hooks/use-tab-scroll-padding';
@@ -240,8 +241,17 @@ export default function ShopScreen() {
     </View>
   );
 
+  const handleAddToCart = (item: CatalogProduct) => {
+    if (!isAuthenticated()) {
+      promptSignInForCart();
+      return;
+    }
+    void addToCart(item);
+  };
+
   const renderProduct = ({ item, index }: { item: CatalogProduct; index: number }) => {
     const r = productRating(item);
+    const canAdd = isAuthenticated();
     return (
       <Animated.View
         entering={FadeInDown.delay(Math.min(index, 8) * MotionStagger.item)
@@ -268,12 +278,19 @@ export default function ShopScreen() {
             <View style={styles.cardBottom}>
               <Text style={styles.pPrice}>{item.price}</Text>
               <ScalePressable
-                style={styles.addPill}
-                scale={0.9}
-                onPress={() => void addToCart(item)}
+                style={[styles.addPill, !canAdd && styles.addPillDisabled]}
+                scale={canAdd ? 0.9 : 1}
+                onPress={() => handleAddToCart(item)}
                 hitSlop={6}
-                accessibilityLabel={`Add ${item.name}`}>
-                <Ionicons name="add" size={20} color={T.ink} />
+                haptic={canAdd}
+                accessibilityLabel={
+                  canAdd ? `Add ${item.name}` : `Sign in to add ${item.name}`
+                }>
+                <Ionicons
+                  name={canAdd ? 'add' : 'lock-closed-outline'}
+                  size={canAdd ? 20 : 18}
+                  color={canAdd ? T.ink : T.inkMuted}
+                />
               </ScalePressable>
             </View>
           </View>
@@ -584,6 +601,11 @@ const styles = StyleSheet.create({
     borderColor: T.gold,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  addPillDisabled: {
+    backgroundColor: T.chipBg,
+    borderColor: T.line,
+    opacity: 0.9,
   },
 
   empty: {

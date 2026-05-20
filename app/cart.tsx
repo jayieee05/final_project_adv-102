@@ -17,6 +17,7 @@ import { FadeInView, ScalePressable } from '@/components/ui/motion';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { useAuth } from '@/contexts/auth-context';
 import { cartLineImage, useCart } from '@/contexts/cart-context';
+import { promptSignInForCart } from '@/lib/cart-auth';
 import { formatPeso } from '@/lib/format-currency';
 import { calculateOrderTotals } from '@/lib/transactions';
 
@@ -26,15 +27,22 @@ export default function CartScreen() {
   const subtotal = getTotalPrice();
   const { shipping, total } = calculateOrderTotals(cartItems.length, subtotal);
 
+  const canModifyCart = isAuthenticated();
+
   const goCheckout = () => {
-    if (!isAuthenticated()) {
-      Alert.alert('Sign in required', 'Please log in to complete your purchase.', [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Log in', onPress: () => router.push('/login') },
-      ]);
+    if (!canModifyCart) {
+      promptSignInForCart('Please log in to complete your purchase.');
       return;
     }
     router.push('/checkout');
+  };
+
+  const increaseQty = (item: (typeof cartItems)[number]) => {
+    if (!canModifyCart) {
+      promptSignInForCart();
+      return;
+    }
+    void updateQuantity(item.id, item.quantity + 1, item.size, item.material);
   };
 
   return (
@@ -77,11 +85,10 @@ export default function CartScreen() {
                     </Pressable>
                     <Text style={styles.qty}>{item.quantity}</Text>
                     <Pressable
-                      style={styles.qtyBtn}
-                      onPress={() =>
-                        updateQuantity(item.id, item.quantity + 1, item.size, item.material)
-                      }>
-                      <Text style={styles.qtyTxt}>+</Text>
+                      style={[styles.qtyBtn, !canModifyCart && styles.qtyBtnDisabled]}
+                      onPress={() => increaseQty(item)}
+                      disabled={!canModifyCart}>
+                      <Text style={[styles.qtyTxt, !canModifyCart && styles.qtyTxtDisabled]}>+</Text>
                     </Pressable>
                     <Pressable
                       style={styles.remove}
@@ -177,6 +184,8 @@ const styles = StyleSheet.create({
     backgroundColor: FinesseColors.backgroundAlt,
   },
   qtyTxt: { fontSize: 18, color: FinesseColors.secondary, fontFamily: FinesseFonts.sansMedium },
+  qtyBtnDisabled: { opacity: 0.45, backgroundColor: FinesseColors.border },
+  qtyTxtDisabled: { color: FinesseColors.textLight },
   qty: {
     fontFamily: FinesseFonts.sansMedium,
     fontSize: 16,
