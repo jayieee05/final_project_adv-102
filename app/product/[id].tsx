@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ProductRelatedCarousel } from '@/components/finesse/product-related-carousel';
+import { ProductReviewsSection } from '@/components/finesse/product-reviews-section';
 import { FadeInView, ScalePressable } from '@/components/ui/motion';
 import { FinesseColors, FinesseFonts } from '@/constants/finesse-theme';
 import { getProductById, productImage } from '@/data/catalog';
@@ -23,16 +25,20 @@ export default function ProductDetailScreen() {
   const idStr = Array.isArray(raw.id) ? raw.id[0] : raw.id;
   const product = useMemo(() => getProductById(Number(idStr)), [idStr]);
   const { isAuthenticated } = useAuth();
-  const { addToCart } = useCart();
+  const { addToCart, getTotalItems } = useCart();
   const [adding, setAdding] = useState(false);
+  const cartCount = getTotalItems();
 
   if (!product) {
     return (
       <SafeAreaView style={styles.safe}>
-        <Pressable style={styles.backRow} onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={24} color={FinesseColors.secondary} />
-          <Text style={styles.backTxt}>Back</Text>
-        </Pressable>
+        <View style={styles.header}>
+          <Pressable style={styles.backBtn} onPress={() => router.back()} hitSlop={8}>
+            <Ionicons name="chevron-back" size={24} color={FinesseColors.secondary} />
+            <Text style={styles.backTxt}>Back</Text>
+          </Pressable>
+          <View style={styles.headerSpacer} />
+        </View>
         <View style={styles.miss}>
           <Text style={styles.missTxt}>Product not found.</Text>
         </View>
@@ -59,14 +65,32 @@ export default function ProductDetailScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <Pressable style={styles.backRow} onPress={() => router.back()}>
-        <Ionicons name="chevron-back" size={24} color={FinesseColors.secondary} />
-        <Text style={styles.backTxt}>Back</Text>
-      </Pressable>
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <View style={styles.header}>
+        <Pressable style={styles.backBtn} onPress={() => router.back()} hitSlop={8}>
+          <Ionicons name="chevron-back" size={24} color={FinesseColors.secondary} />
+          <Text style={styles.backTxt}>Back</Text>
+        </Pressable>
+        <Pressable
+          style={styles.cartBtn}
+          onPress={() => router.push('/cart')}
+          hitSlop={8}
+          accessibilityLabel="Open shopping cart">
+          <Ionicons name="bag-outline" size={24} color={FinesseColors.secondary} />
+          {cartCount > 0 ? (
+            <View style={styles.cartBadge}>
+              <Text style={styles.cartBadgeTxt}>{cartCount > 99 ? '99+' : cartCount}</Text>
+            </View>
+          ) : null}
+        </Pressable>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}>
         <FadeInView from="fade" index={0}>
           <Image source={productImage(product)} style={styles.heroImg} contentFit="cover" />
         </FadeInView>
+
         <FadeInView index={1} style={styles.body}>
           <Text style={styles.name}>{product.name}</Text>
           <Text style={styles.price}>{product.price}</Text>
@@ -83,6 +107,18 @@ export default function ProductDetailScreen() {
             <Text style={styles.ctaTxt}>{adding ? 'ADDING…' : 'ADD TO CART'}</Text>
           </ScalePressable>
         </FadeInView>
+
+        <View style={styles.divider} />
+
+        <View style={styles.sectionPad}>
+          <ProductReviewsSection productId={product.id} />
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.sectionPad}>
+          <ProductRelatedCarousel productId={product.id} />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -90,19 +126,49 @@ export default function ProductDetailScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: FinesseColors.background },
-  backRow: {
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 12,
     paddingVertical: 8,
-    gap: 4,
+    borderBottomWidth: 1,
+    borderBottomColor: FinesseColors.border,
   },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 4,
+  },
+  headerSpacer: { width: 44 },
   backTxt: {
     fontFamily: FinesseFonts.sansMedium,
     fontSize: 16,
     color: FinesseColors.secondary,
   },
-  scroll: { paddingBottom: 40 },
+  cartBtn: {
+    padding: 8,
+    position: 'relative',
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: FinesseColors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+  },
+  cartBadgeTxt: {
+    fontFamily: FinesseFonts.sansMedium,
+    fontSize: 10,
+    color: FinesseColors.secondary,
+  },
+  scroll: { paddingBottom: 48 },
   heroImg: {
     width: '100%',
     aspectRatio: 1,
@@ -145,6 +211,15 @@ const styles = StyleSheet.create({
     fontFamily: FinesseFonts.sansMedium,
     letterSpacing: 2,
     color: FinesseColors.secondary,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: FinesseColors.border,
+    marginHorizontal: 20,
+  },
+  sectionPad: {
+    paddingHorizontal: 20,
+    paddingVertical: 24,
   },
   miss: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   missTxt: { fontFamily: FinesseFonts.sans, color: FinesseColors.textLight, fontSize: 16 },

@@ -67,3 +67,13 @@ export function getAllProducts(): CatalogProduct[] {
 export function getBestsellers(): CatalogProduct[] {
   return BESTSELLER_IDS.map((bid) => products.find((p) => p.id === bid)!).filter(Boolean);
 }
+
+/** Related items for product detail — same category first, then others */
+export function getRelatedProducts(productId: number, limit = 6): CatalogProduct[] {
+  const current = getProductById(productId);
+  if (!current) return [];
+
+  const sameCategory = products.filter((p) => p.id !== productId && p.category === current.category);
+  const others = products.filter((p) => p.id !== productId && p.category !== current.category);
+  return [...sameCategory, ...others].slice(0, limit);
+}
