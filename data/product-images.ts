@@ -1,27 +1,27 @@
 import type { ImageSource } from 'expo-image';
 
-/** Local jewelry photos (from Desktop/Jewelry), keyed for catalog + cart persistence */
+/** Local jewelry photos (Finesse Jewelry assets), keyed for catalog + cart persistence */
 export const PRODUCT_IMAGES = {
-  ringOfLeaves: require('@/assets/jewelry/ring-of-leaves.webp'),
-  simpleChainRing: require('@/assets/jewelry/simple-chain-ring.webp'),
-  tiaraRing: require('@/assets/jewelry/tiara-ring.avif'),
+  ringOfLeaves: require('@/assets/jewelry/ring-of-leaves.png'),
+  simpleChainRing: require('@/assets/jewelry/simple-chain-ring.png'),
+  tiaraRing: require('@/assets/jewelry/tiara-ring.png'),
   roseRing: require('@/assets/jewelry/rose-ring.png'),
-  signetRing: require('@/assets/jewelry/signet-ring.webp'),
-  chainedCuff: require('@/assets/jewelry/chained-cuff.webp'),
-  thinChain: require('@/assets/jewelry/thin-chain.jpg'),
-  leafyChain: require('@/assets/jewelry/leafy-chain.webp'),
-  floraChain: require('@/assets/jewelry/flora-chain.jpg'),
-  arrowCuff: require('@/assets/jewelry/arrow-cuff.webp'),
-  diamondStuds: require('@/assets/jewelry/diamond-studs.webp'),
-  miniHoops: require('@/assets/jewelry/mini-hoops.webp'),
-  danglingLeaves: require('@/assets/jewelry/dangling-leaves.webp'),
-  leafStuds: require('@/assets/jewelry/leaf-studs.webp'),
-  chainDrops: require('@/assets/jewelry/chain-drops.webp'),
-  rubyPendant: require('@/assets/jewelry/ruby-pendant.webp'),
-  diamondChoker: require('@/assets/jewelry/diamond-choker.webp'),
-  heartDrop: require('@/assets/jewelry/heart-drop.webp'),
-  leafPendant: require('@/assets/jewelry/leaf-pendant.webp'),
-  initialPendant: require('@/assets/jewelry/initial-pendant.webp'),
+  signetRing: require('@/assets/jewelry/signet-ring.png'),
+  chainedCuff: require('@/assets/jewelry/chained-cuff.png'),
+  thinChain: require('@/assets/jewelry/thin-chain.png'),
+  leafyChain: require('@/assets/jewelry/leafy-chain.png'),
+  floraChain: require('@/assets/jewelry/flora-chain.png'),
+  arrowCuff: require('@/assets/jewelry/arrow-cuff.png'),
+  diamondStuds: require('@/assets/jewelry/diamond-studs.png'),
+  miniHoops: require('@/assets/jewelry/mini-hoops.png'),
+  danglingLeaves: require('@/assets/jewelry/dangling-leaves.png'),
+  leafStuds: require('@/assets/jewelry/leaf-studs.png'),
+  chainDrops: require('@/assets/jewelry/chain-drops.png'),
+  rubyPendant: require('@/assets/jewelry/ruby-pendant.png'),
+  diamondChoker: require('@/assets/jewelry/diamond-choker.png'),
+  heartDrop: require('@/assets/jewelry/heart-drop.png'),
+  leafPendant: require('@/assets/jewelry/leaf-pendant.png'),
+  initialPendant: require('@/assets/jewelry/initial-pendant.png'),
 } as const;
 
 export type ProductImageKey = keyof typeof PRODUCT_IMAGES;
