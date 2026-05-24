@@ -31,6 +31,6 @@ export function productImageSource(key: ProductImageKey): ImageSource {
 }
 
 /** Hero / about sections */
-export const HERO_LIFESTYLE_BG = require('../assets/finesse/hero-lifestyle-bg.png');
+export const HERO_LIFESTYLE_BG = require('../assets/finesse/hero-lifestyle-bg.jpg');
 /** "Our Craftsmanship" preview on home */
 export const CRAFT_JEWELRY_IMAGE = require('../assets/finesse/craftsmanship-preview.png');
